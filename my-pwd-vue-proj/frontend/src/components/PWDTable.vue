@@ -58,6 +58,7 @@
     </div>
   </template>
   
+  
   <style scoped>
   /* Table Card */
   .table-card {

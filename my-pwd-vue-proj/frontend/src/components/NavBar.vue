@@ -38,7 +38,10 @@
 </template>
 
 <script>
-import LogoutModal from './LogoutModal.vue'; // ✅ Import LogoutModal
+
+
+import LogoutModal from '../components/modals/LogoutModal.vue';
+
 
 export default {
   components: { LogoutModal }, // ✅ Register the component

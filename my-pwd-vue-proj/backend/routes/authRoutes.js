@@ -1,20 +1,12 @@
 import express from 'express';
-import { pool } from './config/database.js'; // ✅ Import MySQL connection
-import bodyParser from 'body-parser';
-import morgan from 'morgan';
-import cors from 'cors';
+import { pool } from '../config/database.js'; // ✅ Import the database connection
 
-const app = express(); 
 
-// ✅ Middleware
-app.use(morgan('dev'));
-app.use(cors());
-app.use(bodyParser.json());
-app.use(express.json()); 
+const router = express.Router();
 
 // ✅ Login Route
-app.post('/api/login', async (req, res) => {
-    const { username, pass } = req.body; 
+router.post('/login', async (req, res) => {
+    const { username, pass } = req.body;
 
     try {
         const [rows] = await pool.promise().query(
@@ -31,9 +23,8 @@ app.post('/api/login', async (req, res) => {
         console.error("❌ Login Error:", error);
         res.status(500).json({ success: false, message: "Server error" });
     }
-});
+});     
 
-const PORT = 3000;
-app.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
-});
+
+
+export default router;
