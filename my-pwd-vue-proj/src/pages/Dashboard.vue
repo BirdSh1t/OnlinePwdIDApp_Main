@@ -57,21 +57,6 @@
   </div>
 </template>
 
-<!-- <script>
-import PWDTable from '../components/PWDTable.vue';
-import RecentApplicantsTable from '../components/RecentApplicantsTable.vue';
-
-
-export default {
-  components: { PWDTable, RecentApplicantsTable },
-  methods: {
-    getIconUrl(fileName) {
-      return new URL(`../assets/icons/${fileName}`, import.meta.url).href;
-    }
-  }
-};
-</script> -->
-
 <script>
 import PWDTable from '../components/PWDTable.vue';
 import RecentApplicantsTable from '../components/RecentApplicantsTable.vue';
