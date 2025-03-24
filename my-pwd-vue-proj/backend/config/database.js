@@ -2,7 +2,7 @@ import mysql2 from 'mysql2';
 import dotenv from 'dotenv';
 
 dotenv.config();
- // Load environment variables from a .env file
+
 const pool = mysql2.createPool({
     host: process.env.DB_HOST,     
     port: Number(process.env.DB_PORT),     
@@ -16,16 +16,13 @@ const pool = mysql2.createPool({
 
 const checkConnection = async () => {
   try {
-      const connection = await pool.promise().getConnection(); // ✅ Use .promise() for async/await
+      const connection = await pool.promise().getConnection();
       console.log("✅ Database Connection Successful!");
       connection.release();
   } catch (error) {
       console.error(`❌ Database Connection Failed: ${error.code} - ${error.message}`);
-      throw error; // Optional: Re-throw for debugging
+      throw error;
   }
 };
 
-
-// Call the checkConnection function to verify the database connection
 export { pool, checkConnection };
-

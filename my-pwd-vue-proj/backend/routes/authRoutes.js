@@ -1,6 +1,5 @@
 import express from 'express';
-import { pool } from '../config/database.js'; // ✅ Import the database connection
-
+import { pool } from '../config/database.js';
 
 const router = express.Router();
 
@@ -24,7 +23,5 @@ router.post('/login', async (req, res) => {
         res.status(500).json({ success: false, message: "Server error" });
     }
 });     
-
-
 
 export default router;

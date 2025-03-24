@@ -67,7 +67,7 @@ export default {
   methods: {
     // ✅ Function to get image URL
     getIconUrl(fileName) {
-      return new URL(`../assets/icons/${fileName}`, import.meta.url).href;
+      return new URL(`/src/assets/icons/${fileName}`, import.meta.url).href;
     },
 
     // ✅ Toggle password visibility
@@ -108,10 +108,11 @@ export default {
         }
 
         try {
-            const response = await axios.post('http://localhost:3000/api/login', {
-                username: this.username, 
-                pass: this.password      
+          const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/login`, {  
+                username: this.username,  
+                pass: this.password  
             });
+
 
             if (response.data.success) {
                 alert(response.data.message);
@@ -140,11 +141,12 @@ html, body {
     display: flex;
     justify-content: center; 
     align-items: center; 
-    overflow: hidden; /* ✅ Prevents scrolling */
+    overflow: clip; /* ✅ Prevents scrolling */
 }
 
 /* Fullscreen container */
 .login-container {
+    overflow: clip;
     width: 100vw;
     height: 100vh;
     display: flex;

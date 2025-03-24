@@ -6,6 +6,7 @@
   
   <style scoped>
   .page-container {
+    overflow: clip;
     display: flex;
     font-family: 'Cooper Hewitt', sans-serif;
     align-items: center;

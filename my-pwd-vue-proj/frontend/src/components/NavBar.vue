@@ -38,10 +38,7 @@
 </template>
 
 <script>
-
-
-import LogoutModal from '../components/modals/LogoutModal.vue';
-
+import LogoutModal from '@/components/modals/LogoutModal.vue'; // ✅ Use alias '@' for cleaner imports
 
 export default {
   components: { LogoutModal }, // ✅ Register the component
@@ -61,7 +58,7 @@ export default {
 
   methods: {
     getIconUrl(fileName) {
-      return new URL(`../assets/icons/${fileName}`, import.meta.url).href;
+      return new URL(`/src/assets/icons/${fileName}`, import.meta.url).href;
     },
     setActive(index) {
       this.activeIndex = index;
@@ -76,6 +73,7 @@ export default {
 <style scoped>
   /* Sidebar */
   .sidebar {
+    overflow: clip;
     width: 200px;
     height: 100vh;
     background-color: #149656;

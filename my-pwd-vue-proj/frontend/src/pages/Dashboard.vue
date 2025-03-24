@@ -58,8 +58,10 @@
 </template>
 
 <script>
-import PWDTable from '../components/PWDTable.vue';
-import RecentApplicantsTable from '../components/RecentApplicantsTable.vue';
+
+import PWDTable from '@/components/PWDTable.vue';
+import RecentApplicantsTable from '@/components/RecentApplicantsTable.vue';
+
 
 export default {
   components: { PWDTable, RecentApplicantsTable },
@@ -75,7 +77,7 @@ export default {
 
   methods: {
     getIconUrl(fileName) {
-      return new URL(`../assets/icons/${fileName}`, import.meta.url).href;
+      return new URL(`/src/assets/icons/${fileName}`, import.meta.url).href;
     }
   }
 };
@@ -92,7 +94,7 @@ export default {
   padding-left: 20px;
   padding-right: 60px;
   height: 100vh;
-  overflow: auto;
+  overflow: clip;
   display: flex;
   flex-direction: column;
 }

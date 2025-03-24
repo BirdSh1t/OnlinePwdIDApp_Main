@@ -4,9 +4,13 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "dev": "cd frontend && vite",
+    "build": "cd frontend && vite build",
+    "preview": "cd frontend && vite preview",
+    "start": "cd backend && node server.js",
+    "server": "cd backend && nodemon backend/server.js",
+    "client": "cd frontend && npm run dev",
+    "both": "concurrently \"npm run server\" \"npm run client\""
   },
   "dependencies": {
     "@fontsource/cooper-hewitt": "^5.2.5",
@@ -26,6 +30,7 @@
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.2.1",
+    "concurrently": "^9.1.2",
     "vite": "^6.2.0"
   }
 }

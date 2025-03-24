@@ -21,30 +21,22 @@
   </template>
   
   <style scoped>
+
+
   /* Table Card */
   .table-card {
   background: white;
   padding: 15px;
   border-radius: 10px;
   box-shadow: 3px 3px 15px rgba(0, 0, 0, 0.1);
-  width: 100%; /* ✅ Makes sure it adapts inside Dashboard */
-  max-width: 510px; /* ✅ Shrinks the table */
   display: flex;
   flex-direction: column;
+  height: 100%; 
+  width: 50%; /* ✅ Takes 50% of its parent container */
+  max-width: 500px;
+  min-width: 300px; 
 }
 
-.table-card {
-  background: white;
-  padding: 15px;
-  border-radius: 10px;
-  box-shadow: 3px 3px 15px rgba(0, 0, 0, 0.1);
-  flex: 1;
-  min-width: 200px;
-  max-width: 400px;
-  display: flex;
-  flex-direction: column;
-  height: 100%; /* ✅ Ensures table-card fills available height */
-}
   
   /* Table Header */
   .table-header {

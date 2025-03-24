@@ -20,7 +20,7 @@ export default {
   },
   methods: {
     getIconUrl(fileName) {
-      return new URL(`../assets/icons/${fileName}`, import.meta.url).href;
+      return new URL(`/src/assets/icons/${fileName}`, import.meta.url).href;
     },
     confirmLogout() {
       localStorage.removeItem('isLoggedIn'); // ✅ Clear login state

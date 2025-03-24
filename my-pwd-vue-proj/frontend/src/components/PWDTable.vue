@@ -62,6 +62,7 @@
   <style scoped>
   /* Table Card */
   .table-card {
+    overflow: clip;
     background: white;
     padding: 15px;
     border-radius: 10px;

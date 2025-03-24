@@ -1,9 +1,9 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import Login from '../pages/login.vue'; // ✅ Import Login page
-import Dashboard from '../pages/Dashboard.vue';
-import Database from '../pages/Database.vue';
-import Create from '../pages/Create.vue';
-import Calendar from '../pages/Calendar.vue';
+import Login from '@/pages/login.vue';
+import Dashboard from '@/pages/Dashboard.vue';
+import Database from '@/pages/Database.vue';
+import Create from '@/pages/Create.vue';
+import Calendar from '@/pages/Calendar.vue';
 
 const routes = [
   { path: '/', name: 'Login', component: Login }, // ✅ Set Login as the default route
@@ -14,9 +14,10 @@ const routes = [
 ];
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory(import.meta.env.BASE_URL), // ✅ Fix Vite compatibility
   routes,
 });
+
 
 // ✅ Global navigation guard to protect routes
   router.beforeEach((to, from, next) => {
