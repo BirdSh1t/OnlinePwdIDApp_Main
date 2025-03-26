@@ -33,7 +33,7 @@
   flex-direction: column;
   height: 100%; 
   width: 50%; /* ✅ Takes 50% of its parent container */
-  max-width: 500px;
+  max-width: 400px;
   min-width: 300px; 
 }
 

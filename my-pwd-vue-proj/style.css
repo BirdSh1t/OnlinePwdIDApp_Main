@@ -1,4 +1,4 @@
-/* Prevent scrolling */
+
 html, body {
   overflow: clip;
   margin: 0;
@@ -6,6 +6,7 @@ html, body {
   width: 100vw;
   height: 100vh;
   display: flex;
+  
 }
 
 

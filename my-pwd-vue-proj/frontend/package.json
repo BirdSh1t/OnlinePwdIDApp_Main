@@ -8,8 +8,14 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
+    "@fontsource/barlow": "^5.2.5",
+    "@fontsource/cooper-hewitt": "^5.2.5",
+    "@fontsource/montserrat": "^5.2.5",
+    "@fontsource/raleway": "^5.2.5",
+    "@fontsource/roboto": "^5.2.5",
+    "@fontsource/work-sans": "^5.2.5",
+    "@vitejs/plugin-vue": "^5.2.1",
     "vite": "^6.2.2",
-    "vue": "^3.5.13",
-    "@vitejs/plugin-vue": "^5.2.1"
+    "vue": "^3.5.13"
   }
 }

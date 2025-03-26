@@ -1,6 +1,10 @@
 <template>
     <div class="page-container">
-      <h1>Under Development</h1>
+      
+      <DashboardHeader title="Create" />
+
+
+
     </div>
   </template>
   

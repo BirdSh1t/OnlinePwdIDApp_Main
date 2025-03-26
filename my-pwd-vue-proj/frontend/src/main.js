@@ -10,6 +10,26 @@ import '@fontsource/poppins/400.css'; // Regular
 import '@fontsource/poppins/700.css'; // Bold
 import '@fontsource/poppins/800.css'; // Extra-Bold
 
+import '@fontsource/roboto/100.css'; /* Thin */
+import '@fontsource/roboto/300.css'; /* Light */
+import '@fontsource/roboto/400.css'; /* Regular */
+import '@fontsource/roboto/500.css'; /* Medium */
+import '@fontsource/roboto/700.css'; /* Bold */
+import '@fontsource/roboto/900.css'; /* Black */
+
+import '@fontsource/work-sans/400.css'; // Regular
+import '@fontsource/work-sans/700.css'; // Bold
+
+import '@fontsource/montserrat/400.css'; // Regular
+import '@fontsource/montserrat/700.css'; // Bold
+import '@fontsource/montserrat/800.css'; // Extra-Bold
+
+import '@fontsource/raleway/400.css'; // Regular
+import '@fontsource/raleway/700.css'; // Bold
+
+import '@fontsource/barlow/400.css'; // Regular
+import '@fontsource/barlow/700.css'; // Bold
+
 
 import { createApp } from 'vue'
 import App from './App.vue'
