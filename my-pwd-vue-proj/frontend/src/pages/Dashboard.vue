@@ -103,7 +103,7 @@ export default {
   display: flex;
   align-items: center;
   background: white;
-  padding: 20px 30px;
+  padding: 20px 20px;
   border-radius: 10px;
   box-shadow: 3px 3px 15px rgba(0, 0, 0, 0.1);
   flex: 1;
@@ -121,9 +121,9 @@ export default {
   width: calc(100% - 0px); /* ✅ Matches stats card width */
   margin: 0 auto;
   gap: 30px; /* ✅ Adds space between tables */
-  height: calc(100vh - 350px); /* ✅ Makes tables responsive based on screen height */
-  min-height: 250px; /* ✅ Prevents tables from getting too small */
-  padding-bottom: 80px; /* ✅ Ensures spacing before the bottom edge */
+  height: calc(100vh - 250px); /* ✅ Makes tables responsive based on screen height */
+  min-height: 250px; 
+  padding-bottom: 80px; 
 }
 
 .table-card {
@@ -146,7 +146,7 @@ export default {
 
 .PWDTable {
   flex: 1.5; /* ✅ Gives it more width */
-  min-width: 600px; /* ✅ Ensures it doesn’t shrink too much */
+  min-width: 600px; 
 }
 
 .RecentApplicantsTable {

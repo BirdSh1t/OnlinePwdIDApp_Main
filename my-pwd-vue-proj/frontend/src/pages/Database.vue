@@ -7,10 +7,13 @@
     <div class="table-card">
       <!-- Filters Section -->
       <div class="table-filters">
-        <select v-for="(filter, index) in filters" :key="index" class="dropdown">
-          <option>All</option>
-          <option>Example</option>
-        </select>
+        <multiselect
+          v-for="(filter, index) in selectedFilters"
+          :key="index"
+          v-model="selectedFilters[index]"
+          :options="filterOptions"
+          class="custom-dropdown"
+        ></multiselect>
       </div>
 
       <!-- Table -->
@@ -51,12 +54,17 @@
 
 <script>
 import DashboardHeader from '@/components/DashboardHeader.vue';
+import Multiselect from "vue-multiselect";
+import "vue-multiselect/dist/vue-multiselect.css"; // Import default styles
+
+
 
 export default {
-  components: { DashboardHeader },
+  components: { DashboardHeader, Multiselect  },
   data() {
     return {
-      filters: ["All", "All", "All", "All", "Select Date"],
+      selectedFilters: ["All", "All", "All", "All", "Select Date"],
+      filterOptions: ["All", "Example"], // Dropdown options  
       tableData: [
         { name: "Kristell Uchiniga", gender: "Female", disability: "Autism", status: "Valid", date: "28/02/2025" },
         { name: "Bernie Bernardo", gender: "Male", disability: "Visual Impairment", status: "Valid", date: "19/03/2025" },
@@ -102,6 +110,7 @@ export default {
   height: calc(100vh - 230px); /* ✅ Adjust height dynamically */
   min-height: 300px; /* ✅ Prevents shrinking too much */
   overflow: hidden; /* ✅ Ensures scrollbar works correctly */
+  padding-bottom: 14px;
 }
 
 /* Filters Section */
@@ -112,29 +121,72 @@ export default {
   gap: 8px; /* ✅ Reduce space between dropdowns */
 }
 
-/* Dropdown */
-.dropdown {
-  background: #d9d9d9;
-  border: none;
-  border-radius: 6px;
-  padding: 10px 16px; /* ✅ Increase padding */
-  width: 180px; 
+/* Custom Dropdown */
+.custom-dropdown {
+  width: 180px;
+  height: 50px;
   font-family: 'montserrat', sans-serif;
-  color: #505050; 
-  cursor: pointer;
-  appearance: none;
-  position: relative;
-  text-align: left; 
-  margin-bottom: 80px; /* ✅ Add bottom padding */
-  position: relative;
-  text-align: left; /* ✅ Align text inside the dropdown */
+  
+}
+
+/* ✅ Add black border when hovering over the dropdown */
+.custom-dropdown:hover {
+  border-radius: 5px;
+  border: 1px solid rgb(0, 194, 39) !important;
+  transition: border 0.5s ease-in-out;
+  height: 10px;
+  width: 179px;
+  
+}
+
+/* ✅ Remove default styles & apply custom Tailwind CSS */
+.custom-dropdown .multiselect__option {
+  background: white !important;
+  color: black !important;
+}
+
+/* ✅ Change hover background color */
+.custom-dropdown .multiselect__option--highlight {
+  background-color: #f0f0f0 !important; /* Light gray instead of blue */
+  color: black !important;
 }
 
 
-/* Ensure text inside the dropdown aligns properly */
-.dropdown option {
-  text-align: left; 
+/* ✅ Ensures dropdown aligns with table */
+.table-filters {
+  display: flex;
+  justify-content: flex-start;
+  gap: 10px;
+  margin-bottom: 100px;
 }
+
+/* ✅ Prevents dropdown expansion issue */
+.custom-dropdown .multiselect__content-wrapper {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+/* ✅ Custom scrollbar for dropdown */
+.custom-dropdown .multiselect__content-wrapper::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-dropdown .multiselect__content-wrapper::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+/* For the dropdown arrow */
+.dropdown::after {
+  content: url('/src/assets/icons/next_grey.png');
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%) rotate(90deg);
+  pointer-events: none;
+}
+
+
 /* Table Wrapper */
 .table-wrapper {
   flex-grow: 1; /* ✅ Allows table to expand */
@@ -214,12 +266,5 @@ export default {
   cursor: pointer;
 }
 
-/* Dropdown Arrow Customization */
-.dropdown::after {
-  content: url('/src/assets/icons/next_grey.png');
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%) rotate(180deg);
-}
+
 </style>

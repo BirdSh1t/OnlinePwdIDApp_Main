@@ -33,7 +33,7 @@
   flex-direction: column;
   height: 100%; 
   width: 50%; /* ✅ Takes 50% of its parent container */
-  max-width: 400px;
+  max-width: 480px;
   min-width: 300px; 
 }
 
@@ -44,6 +44,7 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 10px;
+    padding-left: 10px;
   }
   
   .table-title {
@@ -78,15 +79,15 @@
   
   td {
     color: #a6a6a6;
-    padding: 12px 15px; /* ✅ Matches header padding */
+    padding: 12px 15px; 
     border-bottom: 1px solid #ededed;
     white-space: nowrap; /* ✅ Prevents breaking text */
-    overflow: hidden; /* ✅ Ensures content stays inside */
-    text-overflow: ellipsis; /* ✅ Truncates long text */
+    overflow: hidden; 
+    text-overflow: ellipsis; 
   }
 
     th:nth-child(1), td:nth-child(1) { width: 30%; } /* Name Column */
-    th:nth-child(2), td:nth-child(2) { width: 40%; } /* Age Column */
+    th:nth-child(2), td:nth-child(2) { width: 20%; } /* Age Column */
     th:nth-child(3), td:nth-child(3) { width: 5%; } /* Disability Type Column */
 
   </style>
