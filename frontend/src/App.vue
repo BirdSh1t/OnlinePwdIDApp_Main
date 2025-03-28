@@ -1,22 +1,11 @@
 <template>
-  <div class="app-container">
-    <!-- ✅ Only show NavBar if NOT on the Login page -->
-    <NavBar v-if="$route.path !== '/'" />
-
-    <!-- ✅ Main content area -->
-    <div :class="{'main-content': $route.path !== '/'}">
-      <router-view />
-    </div>
-  </div>
+  <router-view /> <!-- ✅ Let layouts handle structure -->
 </template>
 
 <script>
-import NavBar from '@/components/NavBar.vue';
-
-export default {
-  components: { NavBar }
-};
+export default {};
 </script>
+
 
 
 

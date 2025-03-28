@@ -1,3 +1,8 @@
+import { createApp } from 'vue'
+import App from './App.vue'
+import router from '@/router';
+
+
 import '@fontsource/cooper-hewitt/400.css'; // Regular
 import '@fontsource/cooper-hewitt/700.css'; // Bold
 import '@fontsource/cooper-hewitt/800.css'; // Extra-Bold
@@ -15,7 +20,7 @@ import '@fontsource/roboto/300.css'; /* Light */
 import '@fontsource/roboto/400.css'; /* Regular */
 import '@fontsource/roboto/500.css'; /* Medium */
 import '@fontsource/roboto/700.css'; /* Bold */
-import '@fontsource/roboto/900.css'; /* Black */
+
 
 import '@fontsource/work-sans/400.css'; // Regular
 import '@fontsource/work-sans/700.css'; // Bold
@@ -31,9 +36,7 @@ import '@fontsource/barlow/400.css'; // Regular
 import '@fontsource/barlow/700.css'; // Bold
 
 
-import { createApp } from 'vue'
-import App from './App.vue'
-import router from '@/router';
+
 
 const app = createApp(App);
 app.use(router);

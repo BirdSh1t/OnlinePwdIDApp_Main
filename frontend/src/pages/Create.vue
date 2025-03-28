@@ -7,7 +7,18 @@
 
     </div>
   </template>
-  
+
+<script>
+  import DashboardHeader from '@/components/DashboardHeader.vue';
+
+export default {
+  components: { DashboardHeader }
+};
+
+
+</script>
+
+
   
   <style scoped>
   .page-container {

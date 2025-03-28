@@ -75,6 +75,7 @@
     padding: 12px 20px;
     width: 400px;
     background-color: white;
+    min-width: 130px;
   }
   
   .search-icon {

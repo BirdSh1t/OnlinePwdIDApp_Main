@@ -88,12 +88,13 @@ export default {
 .database-container {
   font-family: 'montserrat', sans-serif;
   font-weight: 400;
-  padding-left: 20px;
+  padding-left: 50px;
   padding-right: 60px;
   height: 100vh;
   overflow: clip;
   display: flex;
   flex-direction: column;
+  width: 95%;
 }
 
 /* Table Card */

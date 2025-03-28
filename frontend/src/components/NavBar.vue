@@ -48,10 +48,10 @@ export default {
       activeIndex: 0,
       showLogout: false, // ✅ Controls visibility of logout modal
       navItems: [
-        { name: "Dashboard", icon: "dashboard_white.png", link: "/dashboard" },
-        { name: "Database", icon: "database_white.png", link: "/database" },
-        { name: "Create", icon: "create_white.png", link: "/create" },
-        { name: "Calendar", icon: "calendar_white.png", link: "/calendar" },
+        { name: "Dashboard", icon: "dashboard_white.png", link: "/admin/dashboard" },
+        { name: "Database", icon: "database_white.png", link: "/admin/database" },
+        { name: "Create", icon: "create_white.png", link: "/admin/create" },
+        { name: "Calendar", icon: "calendar_white.png", link: "/admin/calendar" },
       ],
     };
   },

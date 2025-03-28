@@ -80,12 +80,14 @@ export default {
   font-family: 'montserrat', sans-serif;
   font-weight: 400;
   font-style: normal; 
-  padding-left: 20px;
+  padding-left: 50px;
   padding-right: 60px;
   height: 100vh;
   overflow: clip;
   display: flex;
   flex-direction: column;
+  width: 95%;
+
 }
 
 /* Stats Section */
