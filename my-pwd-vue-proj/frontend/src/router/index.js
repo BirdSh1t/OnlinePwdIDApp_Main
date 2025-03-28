@@ -27,7 +27,7 @@ const routes = [
     path: '/', 
     component: AdminLayout, 
     children: [
-      { path: '/admin/dashboard', name: 'Dashboard', component: Dashboard },
+      { path: '/dashboard', name: 'Dashboard', component: Dashboard },
       { path: '/admin/database', name: 'Database', component: Database },
       { path: '/admin/create', name: 'Create', component: Create },
       { path: '/admin/calendar', name: 'Calendar', component: Calendar },
