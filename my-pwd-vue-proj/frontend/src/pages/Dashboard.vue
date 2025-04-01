@@ -87,7 +87,7 @@ export default {
   display: flex;
   flex-direction: column;
   width: 95%;
-
+  padding-top: 10px;
 }
 
 /* Stats Section */
@@ -125,7 +125,7 @@ export default {
   gap: 30px; /* ✅ Adds space between tables */
   height: calc(100vh - 250px); /* ✅ Makes tables responsive based on screen height */
   min-height: 250px; 
-  padding-bottom: 80px; 
+  padding-bottom: 94px; 
 }
 
 .table-card {
@@ -138,17 +138,18 @@ export default {
   height: 100%; /* ✅ Adapts to available height */
   display: flex;
   flex-direction: column;
+  padding-bottom: 16px;
 }
 
 .table-wrapper {
-  flex-grow: 1; /* ✅ Allows table to expand within card */
+  flex-grow: 1; 
   overflow-y: auto; /* ✅ Enables vertical scrolling if needed */
   max-height: 100%;
 }
 
 .PWDTable {
   flex: 1.5; /* ✅ Gives it more width */
-  min-width: 600px; 
+  min-width: 700px; 
 }
 
 .RecentApplicantsTable {

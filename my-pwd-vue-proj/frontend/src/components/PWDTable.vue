@@ -68,10 +68,12 @@
     border-radius: 10px;
     box-shadow: 3px 3px 15px rgba(0, 0, 0, 0.1);
     flex: 1;
-    min-width: 300px;
+    min-width: 800px;
     display: flex;
     flex-direction: column;
-    height: 100%; /* ✅ Ensures table-card fills available height */
+    padding-bottom: 15px;
+    height: calc(100vh - 230px); 
+    min-height: 300px;
   }
   
   /* Table Header */
@@ -112,7 +114,11 @@
     border-collapse: collapse;
   }
   
+  /* position: sticky; top: 0; z-index: 1; */
   th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
     background: white;
     color: #707680;
     font-weight: bold;
@@ -128,9 +134,6 @@
     padding: 12px 15px; /* ✅ Matches header padding to keep alignment */
     border-bottom: 1px solid #ededed;
   }
-
-  
-
 
   /* Adjust column widths manually (Optional) */
 th:nth-child(1), td:nth-child(1) { width: 30%; } /* Name Column */

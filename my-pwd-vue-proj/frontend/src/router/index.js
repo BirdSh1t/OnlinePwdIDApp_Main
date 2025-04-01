@@ -6,6 +6,7 @@ import Dashboard from '@/pages/Dashboard.vue';
 import Database from '@/pages/Database.vue';
 import Create from '@/pages/Create.vue';
 import Calendar from '@/pages/Calendar.vue';
+import Archive from '@/pages/Archive.vue';
 
 // 🔹 Import Layouts
 import AdminLayout from '@/layouts/AdminLayout.vue';
@@ -22,20 +23,22 @@ const routes = [
     component: Login 
   },
 
-  // ✅ Admin Routes (Now correctly wrapped in AdminLayout)
+
   { 
-    path: '/', 
+    path: '/admin', 
     component: AdminLayout, 
     children: [
-      { path: '/dashboard', name: 'Dashboard', component: Dashboard },
-      { path: '/admin/database', name: 'Database', component: Database },
-      { path: '/admin/create', name: 'Create', component: Create },
-      { path: '/admin/calendar', name: 'Calendar', component: Calendar },
+      { path: 'dashboard', name: 'Dashboard', component: Dashboard }, 
+      { path: 'database', name: 'Database', component: Database }, 
+      { path: 'create', name: 'Create', component: Create },
+      { path: 'calendar', name: 'Calendar', component: Calendar },
+      { path: 'calendar', name: 'Calendar', component: Calendar }
     ],
     meta: { requiresAuth: true }
   },
 
   // ✅ PWD Applicant Routes (Wrapped in PWDLayout)
+  // http://localhost:5173/pwd/home
   { 
     path: '/pwd', 
     component: PWDLayout, 

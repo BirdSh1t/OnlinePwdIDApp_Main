@@ -1,7 +1,9 @@
 <template>
   <div class="database-container">
     <!-- Dashboard Header -->
-    <DashboardHeader title="Database" />
+    <div class="dashboard-header">
+      <DashboardHeader title="Database" />
+    </div>
 
     <!-- Table Card -->
     <div class="table-card">
@@ -37,12 +39,22 @@
               <td>{{ row.name }}</td>
               <td>{{ row.gender }}</td>
               <td>{{ row.disability }}</td>
-              <td :class="{'valid': row.status === 'Valid', 'invalid': row.status === 'Invalid'}">
+              <td
+                :class="{
+                  valid: row.status === 'Valid',
+                  invalid: row.status === 'Invalid'
+                }"
+              >
                 {{ row.status }}
               </td>
               <td>{{ row.date }}</td>
+              <!-- Pass isOpen and index to MoreOptions -->
               <td class="more-icon">
-                <img :src="getIconUrl('three_dots_grey.png')" alt="More Options" />
+                <MoreOptions
+                  :index="index"
+                  :isOpen="openMenus[index]"
+                  @update:isOpen="handleDropdownToggle"
+                />
               </td>
             </tr>
           </tbody>
@@ -53,33 +65,83 @@
 </template>
 
 <script>
-import DashboardHeader from '@/components/DashboardHeader.vue';
+import DashboardHeader from "@/components/DashboardHeader.vue";
 import Multiselect from "vue-multiselect";
-import "vue-multiselect/dist/vue-multiselect.css"; // Import default styles
-
-
+import "vue-multiselect/dist/vue-multiselect.css";
+import MoreOptions from "@/components/MoreOptions.vue";
 
 export default {
-  components: { DashboardHeader, Multiselect  },
+  name: "Database",
+  components: { DashboardHeader, Multiselect, MoreOptions },
   data() {
     return {
       selectedFilters: ["All", "All", "All", "All", "Select Date"],
-      filterOptions: ["All", "Example"], // Dropdown options  
+      filterOptions: ["All", "Example"],
       tableData: [
-        { name: "Kristell Uchiniga", gender: "Female", disability: "Autism", status: "Valid", date: "28/02/2025" },
-        { name: "Bernie Bernardo", gender: "Male", disability: "Visual Impairment", status: "Valid", date: "19/03/2025" },
-        { name: "Jayda McKinney", gender: "Female", disability: "Mobility", status: "Invalid", date: "20/03/2025" },
-        { name: "Alexa Peters", gender: "Female", disability: "Impairment", status: "Valid", date: "23/03/2025" },
-        { name: "Kobe Fleming", gender: "Male", disability: "Hearing Impairment", status: "Invalid", date: "10/04/2025" },
-        { name: "Reagan Xiong", gender: "Male", disability: "Epilepsy", status: "Invalid", date: "15/05/2025" },
-      ]
+        {
+          name: "Kristell Uchiniga",
+          gender: "Female",
+          disability: "Autism",
+          status: "Valid",
+          date: "28/02/2025",
+        },
+        {
+          name: "Bernie Bernardo",
+          gender: "Male",
+          disability: "Visual Impairment",
+          status: "Valid",
+          date: "19/03/2025",
+        },
+        {
+          name: "Jayda McKinney",
+          gender: "Female",
+          disability: "Mobility",
+          status: "Invalid",
+          date: "20/03/2025",
+        },
+        {
+          name: "Alexa Peters",
+          gender: "Female",
+          disability: "Impairment",
+          status: "Valid",
+          date: "23/03/2025",
+        },
+        {
+          name: "Kobe Fleming",
+          gender: "Male",
+          disability: "Hearing Impairment",
+          status: "Invalid",
+          date: "10/04/2025",
+        },
+        {
+          name: "Reagan Xiong",
+          gender: "Male",
+          disability: "Epilepsy",
+          status: "Invalid",
+          date: "15/05/2025",
+        },
+      ],
+      openMenus: Array(6).fill(false), // Track open state of each dropdown
+      activeIndex: null, // Track which row is currently active
     };
   },
   methods: {
     getIconUrl(fileName) {
       return new URL(`/src/assets/icons/${fileName}`, import.meta.url).href;
-    }
-  }
+    },
+    handleDropdownToggle(isOpen, index) {
+      if (this.activeIndex === index) {
+        // If the same row is clicked, toggle its dropdown
+        this.openMenus[index] = !this.openMenus[index];
+      } else {
+        // Close all dropdowns
+        this.openMenus.fill(false);
+        // Open the clicked dropdown
+        this.openMenus[index] = isOpen;
+      }
+      this.activeIndex = isOpen ? index : null;
+    },
+  },
 };
 </script>
 
@@ -95,31 +157,32 @@ export default {
   display: flex;
   flex-direction: column;
   width: 95%;
+  padding-top: 10px;
 }
 
 /* Table Card */
 .table-card {
   background: white;
-  width: calc(100% - 50px);
+  width: calc(100% - 50px); /* Adjust width to be flexible */
   margin: 0 auto 20px;
   padding: 20px;
   border-radius: 10px;
   box-shadow: 3px 3px 15px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
-  padding-left: 30px; /* ✅ Adds left gap */
-  height: calc(100vh - 230px); /* ✅ Adjust height dynamically */
-  min-height: 300px; /* ✅ Prevents shrinking too much */
-  overflow: hidden; /* ✅ Ensures scrollbar works correctly */
+  padding-left: 30px;
+  height: calc(100vh - 230px);
+  min-height: 300px;
+  overflow: hidden;
   padding-bottom: 14px;
 }
 
 /* Filters Section */
 .table-filters {
   display: flex;
-  justify-content: flex-start; /* ✅ Align dropdowns to the left */
-  margin-bottom: 10px; /* ✅ Reduce bottom margin */
-  gap: 8px; /* ✅ Reduce space between dropdowns */
+  justify-content: flex-start;
+  margin-bottom: 10px;
+  gap: 8px;
 }
 
 /* Custom Dropdown */
@@ -127,7 +190,6 @@ export default {
   width: 180px;
   height: 50px;
   font-family: 'montserrat', sans-serif;
-  
 }
 
 /* ✅ Add black border when hovering over the dropdown */
@@ -137,7 +199,6 @@ export default {
   transition: border 0.5s ease-in-out;
   height: 10px;
   width: 179px;
-  
 }
 
 /* ✅ Remove default styles & apply custom Tailwind CSS */
@@ -151,7 +212,6 @@ export default {
   background-color: #f0f0f0 !important; /* Light gray instead of blue */
   color: black !important;
 }
-
 
 /* ✅ Ensures dropdown aligns with table */
 .table-filters {
@@ -177,30 +237,18 @@ export default {
   border-radius: 4px;
 }
 
-/* For the dropdown arrow */
-.dropdown::after {
-  content: url('/src/assets/icons/next_grey.png');
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%) rotate(90deg);
-  pointer-events: none;
-}
-
-
 /* Table Wrapper */
 .table-wrapper {
   flex-grow: 1; /* ✅ Allows table to expand */
   overflow-y: auto;
-  max-height: calc(100% - 50px); /* ✅ Ensures it fits inside the card */
-  padding-right: 60px;
+  max-height: calc(100% - 50px);
 }
 
 /* Table */
 .data-table {
   height: 300px;
   min-height: 400px;
-  width: 100%;
+  width: 98%;
   border-collapse: collapse;
 }
 
@@ -209,7 +257,7 @@ export default {
   position: sticky;
   top: 0;
   background: white;
-  z-index: 10;
+  z-index: 1;
   font-family: 'montserrat', sans-serif;
   font-size: 20px;
   font-weight: 700;
@@ -217,13 +265,13 @@ export default {
   padding: 12px 15px;
   color: black;
   border-bottom: 3px solid #ededed;
-  padding-right: 100px;
-  padding-left: 20px; 
+  padding-left: 20px;
+  white-space: nowrap;
 }
 
 /* Table Rows */
 .data-table td {
-  width: 18%;
+  width: 10%;
   margin: 0 auto;
   padding: 8px 8px;
   font-size: 16px;
@@ -242,7 +290,7 @@ export default {
   position: absolute;
   bottom: 0;
   left: 20%; /* ✅ Move the line further right */
-  width: 80%; /* ✅ Reduce the line length */
+  /* width: 80%;  */
   border-bottom: 1px solid #ddd;
 }
 
@@ -261,11 +309,42 @@ export default {
   font-weight: bold;
 }
 
-/* More Icon */
-.more-icon img {
+/* More Icon Column */
+.more-icon {
+  position: relative;
   width: 20px;
   cursor: pointer;
+  margin-left: 18px;
 }
 
+/* Individual Header Styles */
+.data-table th:nth-child(1) { /* Name */
+  width: 15%;
+  /* Add any specific styles for the Name column here */
+}
 
+.data-table th:nth-child(2) { /* Gender */
+  width: 10%;
+  /* Add any specific styles for the Gender column here */
+}
+
+.data-table th td:nth-child(3) { /* Type of Disability */
+  width: 20%;
+  /* Add any specific styles for the Type of Disability column here */
+}
+
+.data-table th:nth-child(4) { /* Status */
+  width: 10%;
+  /* Add any specific styles for the Status column here */
+}
+
+.data-table th:nth-child(5) { /* Date */
+  width: 10%;
+  /* Add any specific styles for the Date column here */
+}
+
+.data-table th:nth-child(6) { /* More */
+  width: 10%;
+  /* Add any specific styles for the More column here */
+}
 </style>

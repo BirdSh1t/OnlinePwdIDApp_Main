@@ -52,6 +52,7 @@ export default {
         { name: "Database", icon: "database_white.png", link: "/admin/database" },
         { name: "Create", icon: "create_white.png", link: "/admin/create" },
         { name: "Calendar", icon: "calendar_white.png", link: "/admin/calendar" },
+        { name: "Archive", icon: "archive_white.png", link: "/admin/archive" }
       ],
     };
   },
@@ -76,7 +77,7 @@ export default {
     overflow: clip;
     width: 200px;
     height: 100vh;
-    background-color: #149656;
+    background-color: #0812cb;
     display: flex;
     flex-direction: column;
     padding: 15px;

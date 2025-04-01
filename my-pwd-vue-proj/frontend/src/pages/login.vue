@@ -142,7 +142,7 @@ export default {
         if (response.data.success) {
           alert(response.data.message);
           localStorage.setItem('isLoggedIn', 'true');
-          this.$router.push('/dashboard');
+          this.$router.push('/admin/dashboard');
         } else {
           if (response.data.message.includes('username')) {
             this.usernameError = "Incorrect Username!";

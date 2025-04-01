@@ -16,14 +16,12 @@
     "@fontsource/roboto": "^5.2.5",
     "@fontsource/work-sans": "^5.2.5",
     "@vitejs/plugin-vue": "^5.2.1",
+    "primeicons": "^7.0.0",
+    "primevue": "^4.3.3",
     "vite": "^6.2.2",
     "vue": "^3.5.13",
     "vue-multiselect": "^3.2.0",
-    "vue-router": "^4.5.0"
-  },
-  "devDependencies": {
-    "autoprefixer": "^10.4.21",
-    "postcss": "^8.5.3",
-    "tailwindcss": "^4.0.17"
+    "vue-router": "^4.5.0",
+    "vuetify": "^3.0.0"
   }
 }

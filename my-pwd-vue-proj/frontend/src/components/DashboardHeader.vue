@@ -1,43 +1,78 @@
 <template>
-    <!-- Dashboard Header Card -->
-    <div class="dashboard-header-card">
-      <div class="dashboard-left">
-        <img :src="getIconUrl('menu_bar_black.png')" alt="Dashboard Icon" class="dashboard-icon" />
-        <h1 class="dashboard-title">{{ title }}</h1> <!-- Dynamically set the title -->
-      </div>
-  
-      <!-- Search Bar -->
-      <div class="search-bar">
-        <img :src="getIconUrl('search_black.png')" alt="Search" class="search-icon" />
-        <input type="text" placeholder="Search here" class="search-input" />
-      </div>
+  <!-- Dashboard Header Card -->
+  <div class="dashboard-header-card">
+    <div class="dashboard-left">
+      <img :src="getIconUrl('menu_bar_black.png')" alt="Dashboard Icon" class="dashboard-icon" />
+      <h1 class="dashboard-title">{{ title }}</h1> <!-- Dynamically set the title -->
+
+      <!-- ✅ Show the paragraph only when the user is on the "Create" page -->
+      <p v-if="$route.path === '/admin/create'" class="create-subtitle">IDNow - PWD Old Members</p>
     </div>
-  </template>
-  
-  <script>
-  export default {
-    props: {
-      title: {
-        type: String,
-        required: true
-      }
-    },
-    methods: {
-      getIconUrl(fileName) {
-        return new URL(`/src/assets/icons/${fileName}`, import.meta.url).href;
-      }
+
+    <!-- Conditional Rendering for Icons or Search Bar -->
+    <div v-if="$route.path === '/admin/create'" class="icons-container">
+      <img :src="getIconUrl('printer_grey.png')" alt="Printer" class="icon" />
+      <img :src="getIconUrl('new_document_grey.png')" alt="New Document" class="icon" />
+    </div>
+    <div v-else class="search-bar">
+      <img :src="getIconUrl('search_black.png')" alt="Search" class="search-icon" />
+      <input type="text" placeholder="Search here" class="search-input" />
+    </div>
+
+  </div>
+</template>
+
+<script>
+export default {
+  props: {
+    title: {
+      type: String,
+      required: true
     }
-  };
-  </script>
+  },
+  methods: {
+    getIconUrl(fileName) {
+      return new URL(`/src/assets/icons/${fileName}`, import.meta.url).href;
+    }
+  }
+};
+</script>
+
+  
+<!-- ✅ Scoped styles for the Dashboard Header component -->
   
   <style scoped>
+
+  .dashboard-left {
+    display: flex;
+    gap: 0px; 
+    position: relative; 
+  }
+
+  /* ✅ Title (Header) */
+  .dashboard-title {
+    font-size: 24px;
+    font-weight: bold;
+    margin: 0; /* ✅ Remove default margin */
+  }
+
+  .create-subtitle {
+    font-size: 14px;
+    color: #707680;
+    position: absolute;
+    top: 100%; /* ✅ Moves paragraph right below title */
+    left: 61px; 
+    margin-top: 2px; 
+    white-space: nowrap; 
+  }
   /* Dashboard Header Card */
   .dashboard-header-card {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: space-between; /* ✅ This ensures it applies directly */
+    font-family: 'Montserrat', sans-serif;
     background: white;
-    padding: 25px 40px;
+    padding: 26px 40px;
     border-radius: 10px;
     box-shadow: 3px 3px 15px rgba(0, 0, 0, 0.1);
     width: calc(100% - 80px); /* ✅ Prevents stretching */
@@ -53,8 +88,8 @@
   
   /* Dashboard Icon */
   .dashboard-icon {
-    width: 50px;
-    height: 50px;
+    width: 40px;
+    height: 40px;
     margin-right: 20px;
   }
   
@@ -62,7 +97,7 @@
   .dashboard-title {
     font-size: 30px;
     font-weight: 700;
-    font-family: 'montserrat', sans-serif;
+    font-family: 'cooper-hewitt/', sans-serif;
     font-style: normal;
   }
   
@@ -91,6 +126,20 @@
     color: #a6a6a6;
     background: transparent;
     flex-grow: 1;
+  }
+
+    /* Icons Container */
+  .icons-container {
+    display: flex;
+    gap: 20px; /* Space between icons */
+    padding-bottom: 31px;
+  }
+
+  /* Icon */
+  .icon {
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
   }
   </style>
   

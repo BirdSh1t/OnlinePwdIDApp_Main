@@ -31,10 +31,13 @@
   box-shadow: 3px 3px 15px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
-  height: 100%; 
+  height: calc(100vh - 230px);
+  min-height: 300px;
+  padding-bottom: 15px;
   width: 50%; /* ✅ Takes 50% of its parent container */
   max-width: 480px;
   min-width: 300px; 
+  padding-top: 10px;
 }
 
   
