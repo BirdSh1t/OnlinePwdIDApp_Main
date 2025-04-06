@@ -8,7 +8,7 @@
       <div class="stats-card">
         <img :src="getIconUrl('total_applicants_black.png')" alt="Total Applicants" class="stats-icon" />
         <div class="stats-text">
-          <p class="stats-number">9,873</p>
+          <p class="stats-number">0</p>
           <p class="stats-label">Total applicants</p>
         </div>
       </div>
@@ -16,7 +16,7 @@
       <div class="stats-card">
         <img :src="getIconUrl('walk_in_applicant_black.png')" alt="Walk-in Applicants" class="stats-icon" />
         <div class="stats-text">
-          <p class="stats-number">256</p>
+          <p class="stats-number">0</p>
           <p class="stats-label">Walk-in applicants</p>
         </div>
       </div>
@@ -24,7 +24,7 @@
       <div class="stats-card">
         <img :src="getIconUrl('online_black.png')" alt="Online Applicants" class="stats-icon" />
         <div class="stats-text">
-          <p class="stats-number">350</p>
+          <p class="stats-number">0</p>
           <p class="stats-label">Online applicants</p>
         </div>
       </div>
@@ -32,7 +32,7 @@
       <div class="stats-card">
         <img :src="getIconUrl('processing_black.png')" alt="Processing Applications" class="stats-icon" />
         <div class="stats-text">
-          <p class="stats-number">350</p>
+          <p class="stats-number">0</p>
           <p class="stats-label">Processing applications</p>
         </div>
       </div>
@@ -87,7 +87,7 @@ export default {
   display: flex;
   flex-direction: column;
   width: 95%;
-
+  padding-top: 10px;
 }
 
 /* Stats Section */
@@ -125,7 +125,7 @@ export default {
   gap: 30px; /* ✅ Adds space between tables */
   height: calc(100vh - 250px); /* ✅ Makes tables responsive based on screen height */
   min-height: 250px; 
-  padding-bottom: 80px; 
+  padding-bottom: 94px; 
 }
 
 .table-card {
@@ -138,17 +138,18 @@ export default {
   height: 100%; /* ✅ Adapts to available height */
   display: flex;
   flex-direction: column;
+  padding-bottom: 16px;
 }
 
 .table-wrapper {
-  flex-grow: 1; /* ✅ Allows table to expand within card */
+  flex-grow: 1; 
   overflow-y: auto; /* ✅ Enables vertical scrolling if needed */
   max-height: 100%;
 }
 
 .PWDTable {
   flex: 1.5; /* ✅ Gives it more width */
-  min-width: 600px; 
+  min-width: 700px; 
 }
 
 .RecentApplicantsTable {

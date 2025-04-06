@@ -6,9 +6,6 @@
 export default {};
 </script>
 
-
-
-
 <style>
 /* ✅ Apply "main-content" only if the user is logged in */
 .main-content {
@@ -33,10 +30,8 @@ export default {};
 
 html, body, #app, .app-container {
   height: 100vh;
-  overflow: hidden;
+  overflow-y: auto;
   margin: 0;
   padding: 0;
 }
-
-
 </style>

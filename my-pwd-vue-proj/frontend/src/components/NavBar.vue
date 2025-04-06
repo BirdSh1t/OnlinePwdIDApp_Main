@@ -18,7 +18,7 @@
           :class="{ active: activeIndex === index }"
           @click="setActive(index)"
         >
-          <img :src="getIconUrl(item.icon)" :alt="item.name" class="nav-icon" />
+          <img :src="getIconUrl(item.icon)" :alt="item.name" :class="['nav-icon', item.customClass]" />
           <span class="nav-text">{{ item.name }}</span>
         </router-link>
       </li>
@@ -27,7 +27,7 @@
     <!-- ✅ Logout button -->
     <div class="logout">
       <a href="#" class="nav-item" @click.prevent="handleLogout">
-        <img :src="getIconUrl('log-out_white.png')" alt="Logout" class="nav-icon" />
+        <img :src="getIconUrl('log-out_white.png')" alt="Logout" class="nav-icon logout-icon" />
         <span class="nav-text">Log out</span>
       </a>
     </div>
@@ -48,10 +48,11 @@ export default {
       activeIndex: 0,
       showLogout: false, // ✅ Controls visibility of logout modal
       navItems: [
-        { name: "Dashboard", icon: "dashboard_white.png", link: "/admin/dashboard" },
-        { name: "Database", icon: "database_white.png", link: "/admin/database" },
-        { name: "Create", icon: "create_white.png", link: "/admin/create" },
-        { name: "Calendar", icon: "calendar_white.png", link: "/admin/calendar" },
+        { name: "Dashboard", icon: "dashboard_white.png", link: "/admin/dashboard", customClass: 'dashboard-icon' },
+        { name: "Report", icon: "records_white.png", link: "/admin/database", customClass: 'records-icon' },
+        { name: "Create", icon: "add_records_white.png", link: "/admin/create", customClass: 'create-icon' },
+        { name: "Calendar", icon: "calendar_white.png", link: "/admin/calendar", customClass: 'calendar-icon' },
+        { name: "Archive", icon: "archive_white.png", link: "/admin/archive", customClass: 'archive-icon' }
       ],
     };
   },
@@ -76,7 +77,7 @@ export default {
     overflow: clip;
     width: 200px;
     height: 100vh;
-    background-color: #149656;
+    background-color: #0812cb;
     display: flex;
     flex-direction: column;
     padding: 15px;
@@ -127,20 +128,52 @@ export default {
     color: white;
     font-family: "Cooper Hewitt", sans-serif;
     transition: background 0.3s ease-in-out;
-    width: calc(100% + 30px); 
-    margin-left: -15px; 
-    padding-left: 15px; 
+    width: calc(100% + 30px);
+    margin-left: -15px;
+    padding-left: 35px;
   }
 
   .nav-icon {
     width: 30px;
     height: 30px;
-    margin-right: 15px; 
-    margin-left: 18px; 
+    margin-right: 15px; /* Adjust this value to control spacing between icon and text */
   }
 
   .nav-text {
     font-size: 18px;
+    margin-left: 10px; /* Adjust this value to control the position of the text */
+  }
+
+  /* Custom classes for each icon */
+  .dashboard-icon {
+    width: 35px;
+    height: 35px;
+  }
+
+  .records-icon {
+    width: 40px;
+    height: 40px;
+    margin-right: 11px;
+  }
+
+  .create-icon {
+    width: 35px;
+    height: 35px;
+  }
+
+  .calendar-icon {
+    width: 35px;
+    height: 35px;
+  }
+
+  .archive-icon {
+    width: 35px;
+    height: 35px;
+  }
+
+  .logout-icon {
+    width: 35px;
+    height: 35px;
   }
 
   /* Sets the BG color of the selected item */
@@ -150,27 +183,25 @@ export default {
   }
 
   .nav-item:hover {
-    background-color: rgba(127, 246, 194, 0.2); 
+    background-color: rgba(127, 246, 194, 0.2);
   }
 
-/* ✅ Keep Log out Button at the Bottom */
+  /* ✅ Keep Log out Button at the Bottom */
   .logout {
-    margin-top: auto; 
-    padding-bottom: 45px; 
+    margin-top: auto;
+    padding-bottom: 45px;
   }
 
   .sidebar {
-  width: 200px;
-  height: 100vh;
-  background-color: #149656;
-  display: flex;
-  flex-direction: column;
-  padding: 15px;
-  color: white;
-  position: fixed; /* ✅ Keeps it in place */
-  left: 0;
-  top: 0;
-}
-
+    width: 200px;
+    height: 100vh;
+    background-color: #149656;
+    display: flex;
+    flex-direction: column;
+    padding: 15px;
+    color: white;
+    position: fixed; /* ✅ Keeps it in place */
+    left: 0;
+    top: 0;
+  }
 </style>
-

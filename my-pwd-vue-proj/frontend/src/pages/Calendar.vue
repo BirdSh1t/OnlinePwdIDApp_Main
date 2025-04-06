@@ -64,6 +64,7 @@ export default {
   display: flex;
   flex-direction: column;
   width: 95%;
+  padding-top: 10px;
 }
 
 /* Title */
@@ -80,8 +81,11 @@ export default {
   border-radius: 12px;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
   overflow-x: auto;
-  margin-bottom: 30px;
-  padding-bottom: 238px;
+  margin: 0 auto 20px;
+  height: calc(100vh - 230px);
+  min-height: 300px;
+  overflow: hidden;
+  padding-bottom: 14px;
 }
 
 /* Table Styling */
