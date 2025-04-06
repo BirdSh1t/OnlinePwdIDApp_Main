@@ -1,67 +1,50 @@
 <template>
-    <div class="more-options">
-      <button @click="toggleDropdown" class="more-button">
-        <img :src="getIconUrl('three_dots_grey.png')" alt="More Options" />
+  <div class="more-options">
+    <button @click="emitToggle" class="more-button">
+      <img :src="getIconUrl('three_dots_grey.png')" alt="More Options" />
+    </button>
+
+    <div v-if="isOpen" class="dropdown-menu">
+      <button @click="viewRecord" class="dropdown-item">
+        <img :src="getIconUrl('view_docu_black.png')" alt="View" />
+        View
       </button>
-  
-      <div v-if="isDropdownOpen" class="dropdown-menu">
-        <button @click="viewRecord" class="dropdown-item">
-          <img :src="getIconUrl('view_docu_black.png')" alt="View" />
-          View
-        </button>
-        <button @click="archiveRecord" class="dropdown-item">
-          <img :src="getIconUrl('archive_black.png')" alt="Archive" />
-          Archive
-        </button>
-      </div>
+      <button @click="archiveRecord" class="dropdown-item">
+        <img :src="getIconUrl('archive_black.png')" alt="Archive" />
+        Archive
+      </button>
     </div>
-  </template>
-  
-  <script setup>
-  import { ref, watch } from "vue";
-  
-  // Props to control dropdown state
-  const props = defineProps({
-    index: Number,
-    isOpen: Boolean,
-  });
-  
-  // Data for dropdown open/close
-  const isDropdownOpen = ref(props.isOpen);
-  
-  // Watch for changes in props to update local state
-  watch(() => props.isOpen, (newVal) => {
-    isDropdownOpen.value = newVal;
-  });
-  
-  // Toggles the dropdown panel
-  const toggleDropdown = () => {
-    isDropdownOpen.value = !isDropdownOpen.value;
-  };
-  
-  // Emit event when dropdown is toggled
-  const emit = defineEmits(['update:isOpen']);
-  watch(isDropdownOpen, (newVal) => {
-    emit('update:isOpen', newVal, props.index);
-  });
-  
-  // "View" action
-  const viewRecord = () => {
-    alert("Viewing Record");
-    isDropdownOpen.value = false;
-  };
-  
-  // "Archive" action
-  const archiveRecord = () => {
-    alert("Archiving Record");
-    isDropdownOpen.value = false;
-  };
-  
-  // Dynamically resolve icon URLs
-  const getIconUrl = (fileName) => {
-    return new URL(`/src/assets/icons/${fileName}`, import.meta.url).href;
-  };
-  </script>
+  </div>
+</template>
+
+<script setup>
+import { defineProps, defineEmits } from "vue";
+
+const props = defineProps({
+  isOpen: Boolean,
+  index: Number,
+});
+const emit = defineEmits(["toggle"]);
+
+const emitToggle = () => {
+  emit("toggle", props.index);
+};
+
+const viewRecord = () => {
+  emit("openForm", props.index);
+  isDropdownOpen.value = false;
+};
+
+const archiveRecord = () => {
+  alert("Archiving Record");
+  // Close the dropdown after action
+  emit("toggle", props.index);
+};
+
+const getIconUrl = (fileName) => {
+  return new URL(`/src/assets/icons/${fileName}`, import.meta.url).href;
+};
+</script>
   
   <style scoped>
   .more-options {

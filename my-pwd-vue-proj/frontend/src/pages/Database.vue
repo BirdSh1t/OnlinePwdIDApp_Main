@@ -32,28 +32,22 @@
               <th>More</th>
             </tr>
           </thead>
-
           <!-- Table Body -->
           <tbody>
             <tr v-for="(row, index) in tableData" :key="index">
               <td>{{ row.name }}</td>
               <td>{{ row.gender }}</td>
               <td>{{ row.disability }}</td>
-              <td
-                :class="{
-                  valid: row.status === 'Valid',
-                  invalid: row.status === 'Invalid'
-                }"
-              >
+              <td :class="{'valid': row.status === 'Valid', 'invalid': row.status === 'Invalid'}">
                 {{ row.status }}
               </td>
               <td>{{ row.date }}</td>
-              <!-- Pass isOpen and index to MoreOptions -->
               <td class="more-icon">
-                <MoreOptions
-                  :index="index"
-                  :isOpen="openMenus[index]"
-                  @update:isOpen="handleDropdownToggle"
+                <MoreOptions 
+                  :index="index" 
+                  :isOpen="activeIndex === index" 
+                  @toggle="toggleDropdown"
+                  @openForm="openFormFromRow"
                 />
               </td>
             </tr>
@@ -78,69 +72,31 @@ export default {
       selectedFilters: ["All", "All", "All", "All", "Select Date"],
       filterOptions: ["All", "Example"],
       tableData: [
-        {
-          name: "Kristell Uchiniga",
-          gender: "Female",
-          disability: "Autism",
-          status: "Valid",
-          date: "28/02/2025",
-        },
-        {
-          name: "Bernie Bernardo",
-          gender: "Male",
-          disability: "Visual Impairment",
-          status: "Valid",
-          date: "19/03/2025",
-        },
-        {
-          name: "Jayda McKinney",
-          gender: "Female",
-          disability: "Mobility",
-          status: "Invalid",
-          date: "20/03/2025",
-        },
-        {
-          name: "Alexa Peters",
-          gender: "Female",
-          disability: "Impairment",
-          status: "Valid",
-          date: "23/03/2025",
-        },
-        {
-          name: "Kobe Fleming",
-          gender: "Male",
-          disability: "Hearing Impairment",
-          status: "Invalid",
-          date: "10/04/2025",
-        },
-        {
-          name: "Reagan Xiong",
-          gender: "Male",
-          disability: "Epilepsy",
-          status: "Invalid",
-          date: "15/05/2025",
-        },
+        { name: "Kristell Uchiniga", gender: "Female", disability: "Autism", status: "Valid", date: "28/02/2025" },
+        { name: "Bernie Bernardo", gender: "Male", disability: "Visual Impairment", status: "Valid", date: "19/03/2025" },
+        { name: "Jayda McKinney", gender: "Female", disability: "Mobility", status: "Invalid", date: "20/03/2025" },
+        { name: "Alexa Peters", gender: "Female", disability: "Impairment", status: "Valid", date: "23/03/2025" },
+        { name: "Kobe Fleming", gender: "Male", disability: "Hearing Impairment", status: "Invalid", date: "10/04/2025" },
+        { name: "Reagan Xiong", gender: "Male", disability: "Epilepsy", status: "Invalid", date: "15/05/2025" },
       ],
-      openMenus: Array(6).fill(false), // Track open state of each dropdown
       activeIndex: null, // Track which row is currently active
     };
   },
   methods: {
-    getIconUrl(fileName) {
-      return new URL(`/src/assets/icons/${fileName}`, import.meta.url).href;
-    },
-    handleDropdownToggle(isOpen, index) {
-      if (this.activeIndex === index) {
-        // If the same row is clicked, toggle its dropdown
-        this.openMenus[index] = !this.openMenus[index];
+    toggleDropdown(rowIndex) {
+      if (this.activeIndex === rowIndex) {
+        // If the same row is clicked, toggle it
+        this.activeIndex = null;
       } else {
-        // Close all dropdowns
-        this.openMenus.fill(false);
-        // Open the clicked dropdown
-        this.openMenus[index] = isOpen;
+        // If a different row is clicked, set that as active
+        this.activeIndex = rowIndex;
       }
-      this.activeIndex = isOpen ? index : null;
     },
+    openFormFromRow(rowIndex) {
+    // Emit an event upward to AdminLayout
+    this.$emit("openForm"); 
+      // If you need to pass data, you can do so: e.g. this.$emit("openForm", this.tableData[rowIndex])
+    }
   },
 };
 </script>

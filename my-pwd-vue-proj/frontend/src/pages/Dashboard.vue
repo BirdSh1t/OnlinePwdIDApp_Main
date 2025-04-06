@@ -8,7 +8,7 @@
       <div class="stats-card">
         <img :src="getIconUrl('total_applicants_black.png')" alt="Total Applicants" class="stats-icon" />
         <div class="stats-text">
-          <p class="stats-number">9,873</p>
+          <p class="stats-number">0</p>
           <p class="stats-label">Total applicants</p>
         </div>
       </div>
@@ -16,7 +16,7 @@
       <div class="stats-card">
         <img :src="getIconUrl('walk_in_applicant_black.png')" alt="Walk-in Applicants" class="stats-icon" />
         <div class="stats-text">
-          <p class="stats-number">256</p>
+          <p class="stats-number">0</p>
           <p class="stats-label">Walk-in applicants</p>
         </div>
       </div>
@@ -24,7 +24,7 @@
       <div class="stats-card">
         <img :src="getIconUrl('online_black.png')" alt="Online Applicants" class="stats-icon" />
         <div class="stats-text">
-          <p class="stats-number">350</p>
+          <p class="stats-number">0</p>
           <p class="stats-label">Online applicants</p>
         </div>
       </div>
@@ -32,7 +32,7 @@
       <div class="stats-card">
         <img :src="getIconUrl('processing_black.png')" alt="Processing Applications" class="stats-icon" />
         <div class="stats-text">
-          <p class="stats-number">350</p>
+          <p class="stats-number">0</p>
           <p class="stats-label">Processing applications</p>
         </div>
       </div>

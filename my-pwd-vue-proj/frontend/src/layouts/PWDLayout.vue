@@ -15,7 +15,8 @@
   
   <style scoped>
   .pwd-layout {
-    overflow-y: auto; /* ✅ Enables scrolling */
+    height: auto;
+    overflow-y: auto;
     flex-direction: column;
   }
   </style>

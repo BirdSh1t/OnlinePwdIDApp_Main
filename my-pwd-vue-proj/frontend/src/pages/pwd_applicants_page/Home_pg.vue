@@ -1,7 +1,10 @@
 <template>
   <div class="home-container">
     <!-- ✅ Background Image -->
-    <img :src="getImageUrl('LasPiñasHomepg_bg.png')" alt="Home Background" class="home-bg" />
+    <div class="home-bg-container">
+      <img :src="getImageUrl('LasPinasHomePg_New.jpg')" alt="Home Background" class="home-bg" />
+      <div class="fade-overlay"></div>
+    </div>
 
     <!-- ✅ City Mayor Section -->
     <div class="city_mayor-container">
@@ -42,17 +45,12 @@
         </div>
       </div>
     </div>
+    
   </div>
 </template>
 
 <script>
-import Header from '@/components/Header.vue'; // ✅ Ensure the path is correct
-
 export default {
-  components: {
-    Header, // ✅ Register the component
-    
-  },
   methods: {
     getImageUrl(fileName) {
       return new URL(`/src/assets/images/${fileName}`, import.meta.url).href;
@@ -74,32 +72,37 @@ export default {
 /* ✅ Ensure the container fits properly */
 .home-container {
   max-width: 100%;
-  min-height: 100vh; 
-  overflow: auto; /* ✅ Enables scrolling */
+  min-height: 100vh; /* ensures at least full viewport height */
+  overflow-y: auto;
+
   text-align: center;
   display: flex;
   flex-direction: column;
-  height: 100vh; /* ✅ Ensures it takes full height */
   align-items: center;
-  position: relative; /* ✅ Ensures proper layering */
+  position: relative;
+}
+
+/* ✅ Container for Background Image and Overlay */
+.home-bg-container {
+  position: relative;
+  width: 100%;
+  height: auto;
 }
 
 /* Style the Background Image */
 .home-bg {
-  position: absolute; /* ✅ Ensures it's behind other content */
-  top: 0;
-  left: 0;
+  display: block; /* Removes default inline spacing */
   width: 100%;
   height: auto;
- /* Ensures the image covers the entire area */
 }
+
 
 /* City Mayor Section */
 .city_mayor-container {
   position: relative; /* ✅ Ensures proper layering */
   margin-top: 388px;
   display: flex;
-  flex-wrap: wrap; 
+  flex-wrap: wrap;
   justify-content: center;
   align-items: center;
   width: 100%;
@@ -133,7 +136,7 @@ export default {
   width: 250px;
   height: 180px;
   border-radius: 10px;
-  overflow: hidden;
+  overflow: auto;
   cursor: pointer;
   transition: transform 0.3s ease-in-out;
 }
