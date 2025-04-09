@@ -1,63 +1,61 @@
 <template>
-    <div class="table-card">
-      <div class="table-header">
-        <h2 class="table-title">PWD list</h2>
-        <button class="see-all-btn">See all ➤</button>
-      </div>
-      <div class="table-wrapper">
-        <table>
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Age</th>
-              <th>Gender</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Kristell Uchiniga</td>
-              <td>KristellNigeru@gmail.com</td>
-              <td>15</td>
-              <td>Female</td>
-            </tr>
-            <tr>
-              <td>Kristell Uchiniga</td>
-              <td>KristellNigeru@gmail.com</td>
-              <td>15</td>
-              <td>Female</td>
-            </tr>
-            <tr>
-              <td>Kristell Uchiniga</td>
-              <td>KristellNigeru@gmail.com</td>
-              <td>15</td>
-              <td>Female</td>
-            </tr>
-            <tr>
-              <td>Kristell Uchiniga</td>
-              <td>KristellNigeru@gmail.com</td>
-              <td>15</td>
-              <td>Female</td>
-            </tr>
-            <tr>
-              <td>Kristell Uchiniga</td>
-              <td>KristellNigeru@gmail.com</td>
-              <td>15</td>
-              <td>Female</td>
-            </tr>
-            <tr>
-              <td>Kristell Uchiniga</td>
-              <td>KristellNigeru@gmail.com</td>
-              <td>15</td>
-              <td>Female</td>
-            </tr>
-            <!-- Add more rows dynamically -->
-          </tbody>
-        </table>
-      </div>
+  <div class="table-card">
+    <div class="table-header">
+      <h2 class="table-title">PWD list</h2>
     </div>
-  </template>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Full Name</th>
+            <th>Address</th>
+            <th>Sex</th>
+            <th>Date Issued</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Show "No Match Found" if noMatch is returned -->
+          <tr v-if="data.length === 1 && data[0].noMatch">
+            <td colspan="4" style="text-align: center;">No Match Found</td>
+          </tr>
+
+          <!-- Otherwise display the rows -->
+          <tr v-else v-for="(user, index) in data" :key="user.pwd_id">
+            <td>{{ user.full_name }}</td>
+            <td>{{ user.address }}</td>
+            <td>{{ user.sex }}</td>
+            <td>{{ formatDate(user.date_issued) }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</template>
+
+<script>
+export default {
+  name: "PWDTable", // ✅ match the filename
+  props: {
+    data: {
+      type: Array,
+      default: () => []
+    }
+  },
+  methods: {
+    formatDate(dateString) {
+      const options = { year: "numeric", month: "short", day: "numeric" };
+      return new Date(dateString).toLocaleDateString(undefined, options);
+    }
+  },
+  mounted() {
+    console.log("Filtered data received in PWDTable:", this.data); // ✅ correct reference to the prop
+  },
   
+};
+</script>
+
+
+
   
   <style scoped>
   /* Table Card */
@@ -88,17 +86,6 @@
     font-size: 28px;
     font-weight: bold;
     color: black;
-  }
-  
-  /* See All Button */
-  .see-all-btn {
-    background: #5271ff;
-    color: white;
-    border: none;
-    padding: 8px 12px;
-    font-size: 14px;
-    border-radius: 5px;
-    cursor: pointer;
   }
   
   /* Table Styling */
@@ -138,7 +125,7 @@
   /* Adjust column widths manually (Optional) */
 th:nth-child(1), td:nth-child(1) { width: 30%; } /* Name Column */
 th:nth-child(2), td:nth-child(2) { width: 40%; } /* Email Column */
-th:nth-child(3), td:nth-child(3) { width: 15%; } /* Age Column */
+th:nth-child(3), td:nth-child(3) { width: 12%; } /* Age Column */
 th:nth-child(4), td:nth-child(4) { width: 5%; } /* Gender Column */
 
 

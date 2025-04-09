@@ -124,6 +124,6 @@
 }
 
 .nav-item:hover {
-  color: #1aff1a; /* Light green color on hover */
+  color: #efe3c2;
 }
 </style>

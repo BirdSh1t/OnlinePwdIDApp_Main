@@ -1,99 +1,60 @@
 <template>
   <transition name="fade">
-    <!-- Show the form & black mask only if visible is true -->
     <div v-if="visible" class="mask-overlay">
       <div class="form-container">
         <!-- Header Section -->
         <header class="form-header">
-          <!-- Back Button (top-left) -->
-          <img
-            :src="getIconUrl('back_button_grey.png')"
-            alt="Back"
-            class="back-icon"
-            @click="closeForm"
-          />
-          <!-- Title aligned in the center (or right as needed) -->
+          <img :src="getIconUrl('back_button_grey.png')" alt="Back" class="back-icon" @click="closeForm" />
           <h2 class="form-title">APPLICATION DETAILS</h2>
-          <!-- Right header group: Gray Square + Edit Icon -->
           <div class="right-header-group">
             <div class="picture-placeholder"></div>
-            <img :src="getIconUrl('edit_black.png')" alt="Edit" class="edit-icon" />
+            <img :src="getIconUrl('edit_black.png')" alt="Edit" class="edit-icon" @click="toggleEditMode" />
           </div>
         </header>
 
         <!-- Body Section -->
         <main class="form-body">
-            <!-- Transfer From -->
-            <div class="form-group">
-              <label>Transfer From:</label>
-              <input type="text" class="text-field" v-model="transferFrom" />
-            </div>
+          <!-- First Name -->
+          <div class="form-group">
+            <label>First Name:</label>
+            <template v-if="isEditMode">
+              <input type="text" class="text-field" v-model="formData.first_name" />
+            </template>
+            <template v-else>
+              <input type="text" class="text-field" :value="userData.first_name" readonly />
+            </template>
+          </div>
 
-            <!-- Care of -->
-            <div class="form-group">
-              <label>Care of:</label>
-              <input type="text" class="text-field" v-model="careOf" />
-            </div>
+          <!-- Transfer From -->
+          <div class="form-group">
+            <label>Transfer From:</label>
+            <template v-if="isEditMode">
+              <input type="text" class="text-field" v-model="formData.transfer_from" />
+            </template>
+            <template v-else>
+              <input type="text" class="text-field" :value="userData.transfer_from" readonly />
+            </template>
+          </div>
 
-            <!-- Name -->
-            <div class="form-group">
-              <label>Name:</label>
-              <input type="text" class="text-field" v-model="name" />
-            </div>
+          <!-- Middle Name -->
+          <div class="form-group">
+            <label>Middle Name:</label>
+            <template v-if="isEditMode">
+              <input type="text" class="text-field" v-model="formData.middle_name" />
+            </template>
+            <template v-else>
+              <input type="text" class="text-field" :value="userData.middle_name" readonly />
+            </template>
+          </div>
 
-            <!-- Member Since (was Middle Name's old position) -->
-            <div class="form-group">
-              <label>Member Since:</label>
-              <input type="date" class="text-field" v-model="memberSince" />
-            </div>
-
-            <!-- Surname (was originally Member Since's position) -->
-            <div class="form-group">
-              <label>Middle Name:</label>
-              <input type="text" class="text-field" v-model="middleName" />
-            </div>
-
-            <!-- Barangay -->
-            <div class="form-group">
-              <label>Barangay:</label>
-              <input type="text" class="text-field" v-model="barangay" />
-            </div>
-
-            <!-- Middle Name (swapped with new Member Since position) -->
-            <div class="form-group">
-              <label>Surname:</label>
-              <input type="text" class="text-field" v-model="surname" />
-            </div>
-
-            <!-- Education -->
-            <div class="form-group">
-              <label>Education:</label>
+          <!-- Disability Cause -->
+          <div class="form-group">
+            <label>Disability Cause:</label>
+            <template v-if="isEditMode">
               <Multiselect
-                v-model="education"
-                :options="educationOptions"
-                class="custom-multiselect"
-                ref="educationRef"
-              >
-                <template #caret="{ toggle }">
-                  <img
-                    :src="getIconUrl('drop_down_black.png')"
-                    alt="Dropdown"
-                    class="caret-icon"
-                    @mousedown.prevent
-                    @click.stop="toggle"
-                  />
-                </template>
-              </Multiselect>
-            </div>
-
-            <!-- Disability Cause -->
-            <div class="form-group">
-              <label>Disability Cause:</label>
-              <Multiselect
-                v-model="disabilityCause"
+                v-model="formData.disability_cause"
                 :options="disabilityCauseOptions"
                 class="custom-multiselect"
-                ref="disabilityCauseRef"
               >
                 <template #caret="{ toggle }">
                   <img
@@ -105,16 +66,42 @@
                   />
                 </template>
               </Multiselect>
-            </div>
+            </template>
+            <template v-else>
+              <input type="text" class="text-field" :value="userData.disability_cause" readonly />
+            </template>
+          </div>
 
-            <!-- Assistive Device -->
-            <div class="form-group">
-              <label>Assistive Device:</label>
+          <!-- Surname -->
+          <div class="form-group">
+            <label>Surname:</label>
+            <template v-if="isEditMode">
+              <input type="text" class="text-field" v-model="formData.surname" />
+            </template>
+            <template v-else>
+              <input type="text" class="text-field" :value="userData.surname" readonly />
+            </template>
+          </div>
+
+          <!-- Care Of -->
+          <div class="form-group">
+            <label>Care Of:</label>
+            <template v-if="isEditMode">
+              <input type="text" class="text-field" v-model="formData.care_of" />
+            </template>
+            <template v-else>
+              <input type="text" class="text-field" :value="userData.care_of" readonly />
+            </template>
+          </div>
+
+          <!-- Assistive Device -->
+          <div class="form-group">
+            <label>Assistive Device:</label>
+            <template v-if="isEditMode">
               <Multiselect
-                v-model="assistiveDevice"
+                v-model="formData.assistive_device"
                 :options="assistiveDeviceOptions"
                 class="custom-multiselect"
-                ref="assistiveDeviceRef"
               >
                 <template #caret="{ toggle }">
                   <img
@@ -126,94 +113,172 @@
                   />
                 </template>
               </Multiselect>
+            </template>
+            <template v-else>
+              <input type="text" class="text-field" :value="userData.assistive_device" readonly />
+            </template>
+          </div>
+
+          <!-- Education -->
+          <div class="form-group">
+            <label>Education:</label>
+            <template v-if="isEditMode">
+              <Multiselect
+                v-model="formData.education"
+                :options="educationOptions"
+                class="custom-multiselect"
+              >
+                <template #caret="{ toggle }">
+                  <img
+                    :src="getIconUrl('drop_down_black.png')"
+                    alt="Dropdown"
+                    class="caret-icon"
+                    @mousedown.prevent
+                    @click.stop="toggle"
+                  />
+                </template>
+              </Multiselect>
+            </template>
+            <template v-else>
+              <input type="text" class="text-field" :value="userData.education" readonly />
+            </template>
+          </div>
+
+          <!-- Member Since -->
+          <div class="form-group">
+            <label>Member Since:</label>
+
+            <!-- READ-ONLY MODE: display formatted date -->
+            <div v-if="!isEditMode" class="text-field" style="padding: 8px 12px; background: #f9f9f9;">
+              {{ formattedMemberSince }}
             </div>
 
-            <!-- Occupation -->
-            <div class="form-group">
-              <label>Occupation:</label>
-              <input type="text" class="text-field" v-model="occupation" />
-            </div>
+            <!-- EDIT MODE: date picker input -->
+            <input
+              v-else
+              type="date"
+              class="text-field"
+              v-model="formData.member_since"
+            />
+          </div>
+
+          <!-- Barangay -->
+          <div class="form-group">
+            <label>Barangay:</label>
+            <template v-if="isEditMode">
+              <input type="text" class="text-field" v-model="formData.barangay" />
+            </template>
+            <template v-else>
+              <input type="text" class="text-field" :value="userData.barangay" readonly />
+            </template>
+          </div>
           </main>
 
         <!-- Footer Section -->
-        <footer class="form-footer">
-          <!-- Left-facing arrow (Previous) -->
-          <img 
-            :src="getIconUrl('next_right.png')" 
-            alt="Previous" 
-            class="footer-arrow flip-horizontal" 
-            @click="$emit('prev')" 
-          />
-          <!-- Page Indicator -->
-          <span class="page-indicator">
-            Page {{ currentPage }} of {{ totalPages }}
-          </span>
-          <!-- Right-facing arrow (Next) -->
-          <img 
-            :src="getIconUrl('next_right.png')" 
-            alt="Next" 
-            class="footer-arrow" 
-            @click="$emit('next')" 
-          />
-        </footer>
+          <footer class="form-footer">
+            <img
+              :src="getIconUrl('next_right.png')"
+              alt="Previous"
+              class="footer-arrow flip-horizontal"
+              @click="$emit('prev')"
+              v-if="!isEditMode"
+            />
+
+            <!-- Page indicator or Save/Cancel button -->
+              <template v-if="!isEditMode">
+                <span class="page-indicator">Page {{ currentPage }} of {{ totalPages }}</span>
+              </template>
+              <template v-else>
+                <div class="edit-buttons">
+                  <span class="cancel-btn" @click="cancelEdit">Cancel</span>
+                  <button class="save-btn" @click="saveChanges">Save</button>
+                </div>
+              </template>
+
+            <img
+              :src="getIconUrl('next_right.png')"
+              alt="Next"
+              class="footer-arrow"
+              @click="$emit('next')"
+              v-if="!isEditMode"
+            />
+          </footer>
       </div>
     </div>
   </transition>
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, watch, computed } from 'vue';
 import Multiselect from "vue-multiselect";
 import "vue-multiselect/dist/vue-multiselect.css";
+import { defineProps, defineEmits } from 'vue';
 
-// Props to show/hide this form
+const emit = defineEmits(["close", "prev", "next"]);
 const props = defineProps({
   visible: Boolean,
+  userData: {
+    type: Object,
+    default: () => ({})
+  },
+  currentPage: {
+    type: Number,
+    default: 1
+  },
+  totalPages: {
+    type: Number,
+    default: 1
+  }
 });
 
+// Edit mode flag
+const isEditMode = ref(false);
 
-// ================= Page 2 FIELDS =================
-const transferFrom = ref("");
-const careOf = ref("");
-const name = ref("");
-const middleName = ref("");
-const surname = ref("");
-const barangay = ref("");
-const memberSince = ref("");
-const education = ref(null);
-const disabilityCause = ref(null);
-const assistiveDevice = ref(null);
-const occupation = ref("");
-
-// Multiselect options
+// Options
 const educationOptions = ["No Formal Education", "Primary", "Secondary", "College", "Vocational", "Postgraduate"];
 const disabilityCauseOptions = ["Birth", "Illness", "Accident", "Others"];
 const assistiveDeviceOptions = ["Cane", "Walker", "Wheelchair", "Hearing Aid", "None"];
 
-// Refs for multiselect components
-const educationRef = ref(null);
-const disabilityCauseRef = ref(null);
-const assistiveDeviceRef = ref(null);
+// Editable form data
+const formData = ref({ ...props.userData });
 
+watch(() => props.userData, (newVal) => {
+  formData.value = { ...newVal };
+}, { immediate: true });
 
-// Page index: should be 1 for Page 2 (this file is Page 2)
-const pageIndex = ref(1);
+function toggleEditMode() {
+  isEditMode.value = !isEditMode.value;
+}
 
-// Dummy currentPage & totalPages for footer indicator (passed from parent)
-const currentPage = ref(2);
-const totalPages = ref(2);
+function closeForm() {
+  emit("close");
+}
 
-// Helper function for icons
 function getIconUrl(fileName) {
   return new URL(`/src/assets/icons/${fileName}`, import.meta.url).href;
 }
 
-// Close form (emit close event)
-const emit = defineEmits(["close"]);
-function closeForm() {
-  emit("close");
+// 💡 Computed for displaying formatted date
+const formattedMemberSince = computed(() => formatDate(formData.value.member_since));
+
+function formatDate(dateString) {
+  if (!dateString) return '';
+  const options = { year: "numeric", month: "short", day: "numeric" };
+  return new Date(dateString).toLocaleDateString(undefined, options);
+}
+
+function cancelEdit() {
+  formData.value = { ...props.userData };
+  isEditMode.value = false;
+}
+
+function saveChanges() {
+  console.log("Saved data:", formData.value);
+  isEditMode.value = false;
 }
 </script>
+
+
 
 <style scoped>
 /* Fade transition for black mask & form */
@@ -242,7 +307,6 @@ function closeForm() {
 
 /* Form Container */
 .form-container {
-  /* Use relative sizing for width, with min/max constraints */
   width: 70vw;
   max-width: 56.25em; /* 900px / 16 */
   min-width: 25em;    /* 400px / 16 */
@@ -394,14 +458,14 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 /* Page Indicator */
 .page-indicator {
-  padding-top: 75px;
+  margin-top: 12.9em;
   color: #707680;
   font-size: 0.875rem; /* ~14px */
 }
 
 /* Footer Arrow */
 .footer-arrow {
-  padding-top: 75px;
+  margin-top: 14.2em;
   width: 1em;  /* ~16px if base is 16px */
   height: 1em;
   cursor: pointer;
@@ -449,6 +513,40 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   transform: translateY(-50%) rotate(180deg);
 }
 
+.edit-buttons {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.cancel-btn {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 14px;
+  color: lightgray;
+  text-decoration: underline;
+  cursor: pointer;
+  margin-top: 159px;
+}
+
+.save-btn {
+  background-color: #066aff;
+  color: white;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 14px;
+  padding: 8px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-top: 159px;
+}
+
+.save-btn:hover {
+  background-color: #0051cc;
+}
+.cancel-btn:hover {
+  color: #202020;
+}
 /* Responsive Adjustments */
 @media (max-width: 37.5em) { /* 600px / 16 = 37.5em */
   .form-container {

@@ -1,14 +1,14 @@
 <template>
   <div class="dashboard-container">
     <!-- Dashboard Header Card -->
-    <DashboardHeader title="Dashboard" /> <!-- Pass title as prop -->
+    <DashboardHeader title="Dashboard" @search="handleSearch" />
 
     <!-- Statistics Cards -->
     <div class="stats-container">
       <div class="stats-card">
         <img :src="getIconUrl('total_applicants_black.png')" alt="Total Applicants" class="stats-icon" />
         <div class="stats-text">
-          <p class="stats-number">0</p>
+          <p class="stats-number">{{ totalApplicants }}</p>
           <p class="stats-label">Total applicants</p>
         </div>
       </div>
@@ -16,7 +16,7 @@
       <div class="stats-card">
         <img :src="getIconUrl('walk_in_applicant_black.png')" alt="Walk-in Applicants" class="stats-icon" />
         <div class="stats-text">
-          <p class="stats-number">0</p>
+          <p class="stats-number">{{ walkInApplicants }}</p>
           <p class="stats-label">Walk-in applicants</p>
         </div>
       </div>
@@ -24,7 +24,7 @@
       <div class="stats-card">
         <img :src="getIconUrl('online_black.png')" alt="Online Applicants" class="stats-icon" />
         <div class="stats-text">
-          <p class="stats-number">0</p>
+          <p class="stats-number">{{ onlineApplicants }}</p>
           <p class="stats-label">Online applicants</p>
         </div>
       </div>
@@ -32,45 +32,68 @@
       <div class="stats-card">
         <img :src="getIconUrl('processing_black.png')" alt="Processing Applications" class="stats-icon" />
         <div class="stats-text">
-          <p class="stats-number">0</p>
+          <p class="stats-number">{{ processingApplications }}</p>
           <p class="stats-label">Processing applications</p>
         </div>
       </div>
     </div>
 
+    
     <!-- Tables Section -->
     <div class="tables-container">
-      <PWDTable />
+      <PWDTable :data="filteredData" />
       <RecentApplicantsTable />
     </div>
   </div>
 </template>
 
 <script>
+import axios from "axios";
 import DashboardHeader from '@/components/DashboardHeader.vue';
 import PWDTable from '@/components/PWDTable.vue';
 import RecentApplicantsTable from '@/components/RecentApplicantsTable.vue';
 
-
 export default {
-  components: { PWDTable, RecentApplicantsTable, DashboardHeader },
-
-  beforeRouteEnter(to, from, next) {
-    const isAuthenticated = localStorage.getItem('isLoggedIn'); // ✅ Check login state
-    if (!isAuthenticated) {
-      next('/'); // ✅ Redirect to login if not logged in
-    } else {
-      next();
-    }
+  name: "Dashboard",
+  components: { DashboardHeader, PWDTable, RecentApplicantsTable },
+  data() {
+    return {
+      fullData: [],       // Initially fetched full data
+      filteredData: [],   // Data filtered based on search
+      totalApplicants: 0,
+      walkInApplicants: 0,
+      onlineApplicants: 0,
+      processingApplications: 0
+    };
   },
-
   methods: {
     getIconUrl(fileName) {
       return new URL(`/src/assets/icons/${fileName}`, import.meta.url).href;
+    },
+    async handleSearch(query) {
+  try {
+    const res = await axios.get("http://localhost:4000/api/search", {
+      params: { page: "dashboard", query }
+    });
+    this.filteredData = res.data.length ? res.data : [];
+  } catch (error) {
+    console.error("Search error:", error);
+    this.filteredData = [];
+      }
     }
+  },
+  async mounted() {
+    // On page load, fetch all users; store both fullData and filteredData
+    const res = await axios.get("http://localhost:4000/api/users");
+    this.fullData = res.data;
+    this.filteredData = res.data;
+    this.totalApplicants = res.data.length;
+
+    console.log("filteredData sample:", this.filteredData[0]);
   }
 };
 </script>
+
 
 
 <style scoped>
@@ -149,7 +172,7 @@ export default {
 
 .PWDTable {
   flex: 1.5; /* ✅ Gives it more width */
-  min-width: 700px; 
+  min-width: 800px; 
 }
 
 .RecentApplicantsTable {

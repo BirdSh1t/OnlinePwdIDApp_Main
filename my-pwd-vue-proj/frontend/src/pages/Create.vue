@@ -40,7 +40,7 @@
           <div class="id-status-container">
             <label for="id-status" class="id-label">IDNow ID:</label>
             <input type="checkbox" id="id-status" class="checkbox-input" v-model="isActive">
-            <label for="id-status" class="status-label">Inactive</label>
+            <label for="id-status" class="status-label">Invalid</label>
           </div>
 
           <!-- Action Container for Big Box and Buttons -->
@@ -543,6 +543,11 @@ export default {
 
 .create-card::-webkit-scrollbar-thumb:hover {
   background: #d4d4d4; /* Color on hover */
+}
+
+/**calendar icon for date **/
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
 }
 
 /* Responsive Adjustments */
