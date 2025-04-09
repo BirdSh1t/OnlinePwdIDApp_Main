@@ -1,194 +1,261 @@
 <template>
-  <!-- v-if="visible" ensures the form only appears when needed -->
   <transition name="fade">
     <div v-if="visible" class="mask-overlay">
       <div class="form-container">
         <!-- Header Section -->
         <header class="form-header">
-          <img :src="getIconUrl('back_button_grey.png')" alt="Back" class="back-icon" @click="closeForm"  />
+          <img :src="getIconUrl('back_button_grey.png')" alt="Back" class="back-icon" @click="closeForm" />
           <h2 class="form-title">APPLICATION DETAILS</h2>
           <div class="right-header-group">
             <div class="picture-placeholder"></div>
-            <img :src="getIconUrl('edit_black.png')" alt="Edit" class="edit-icon" />
+            <!-- Clicking the edit icon toggles edit mode -->
+            <img :src="getIconUrl('edit_black.png')" alt="Edit" class="edit-icon" @click="toggleEditMode" />
           </div>
         </header>
 
         <!-- Body Section -->
         <main class="form-body">
-          <!-- ID No -->
-          <div class="form-group">
-            <label>ID No:</label>
-            <input type="text" class="text-field" v-model="idNumber" />
-          </div>
-
-          <!-- Name -->
-          <div class="form-group">
-            <label>Name:</label>
-            <input type="text" class="text-field" v-model="name" />
-          </div>
-
-          <!-- Type of Disability (Vue Multiselect) -->
+          <!-- Type of Disability -->
           <div class="form-group">
             <label>Type of Disability:</label>
-            <Multiselect
-              v-model="typeOfDisability"
-              :options="disabilityOptions"
-              class="custom-multiselect"
-              ref="typeOfDisabilityRef"
-            >
-              <!-- Custom arrow icon -->
-              <template #caret="{ toggle }">
-                <img
-                  :src="getIconUrl('drop_down_black.png')"
-                  alt="Dropdown"
-                  class="caret-icon"
-                  @mousedown.prevent
-                  @click.stop="toggle"
-                />
-              </template>
-            </Multiselect>
+            <template v-if="isEditMode">
+              <Multiselect
+                v-model="formData.types_of_disability"
+                :options="disabilityOptions"
+                class="custom-multiselect"
+                ref="typeOfDisabilityRef"
+              >
+                <template #caret="{ toggle }">
+                  <img
+                    :src="getIconUrl('drop_down_black.png')"
+                    alt="Dropdown"
+                    class="caret-icon"
+                    @mousedown.prevent
+                    @click.stop="toggle"
+                  />
+                </template>
+              </Multiselect>
+            </template>
+            <template v-else>
+              <input type="text" class="text-field" :value="userData.types_of_disability" readonly />
+            </template>
           </div>
 
-          <!-- Address (Expanding on Focus) -->
-          <div class="form-group address-group">
+          <!-- Full Name -->
+          <div class="form-group">
+            <label>Full Name:</label>
+            <input 
+              type="text" 
+              class="text-field" 
+              v-model="formData.full_name"
+              :readonly="!isEditMode" 
+            />
+          </div>
+
+          <!-- Education -->
+          <div class="form-group">
+            <label>Education:</label>
+            <template v-if="isEditMode">
+              <Multiselect
+                v-model="formData.education"
+                :options="educationOptions"
+                class="custom-multiselect"
+                ref="educationRef"
+              >
+                <template #caret="{ toggle }">
+                  <img
+                    :src="getIconUrl('drop_down_black.png')"
+                    alt="Dropdown"
+                    class="caret-icon"
+                    @mousedown.prevent
+                    @click.stop="toggle"
+                  />
+                </template>
+              </Multiselect>
+            </template>
+            <template v-else>
+              <input type="text" class="text-field" :value="userData.education" readonly />
+            </template>
+          </div>
+
+          <!-- PWD ID (always read-only) -->
+          <div class="form-group">
+            <label>PWD ID:</label>
+            <input type="text" class="text-field" :value="userData.pwd_id" readonly />
+          </div>
+
+          <!-- Address -->
+          <div class="form-group">
             <label>Address:</label>
-            <textarea
-              class="address-field"
-              v-model="address"
+            <textarea 
+              class="address-field" 
+              v-model="formData.address" 
+              :readonly="!isEditMode"
             ></textarea>
           </div>
 
-          <!-- Date of Birth -->
+          <!-- Birthdate -->
           <div class="form-group">
-            <label>Date of Birth:</label>
-            <input type="date" class="text-field" v-model="dateOfBirth" />
+            <label>Birthdate:</label>
+            <div v-if="!isEditMode" class="text-field">{{ formattedBirthdate }}</div>
+            <input
+              v-else
+              type="date"
+              class="text-field"
+              v-model="formData.birthdate"
+            />
           </div>
 
-          <!-- Date Issued -->
-          <div class="form-group">
-            <label>Date Issued:</label>
-            <input type="date" class="text-field" v-model="dateIssued" />
-          </div>
+            <!-- Date Issued -->
+            <div class="form-group">
+              <label>Date Issued:</label>
+              <div v-if="!isEditMode" class="text-field">{{ formattedDateIssued }}</div>
+              <input
+                v-else
+                type="date"
+                class="text-field"
+                v-model="formData.date_issued"
+              />
+            </div>
 
-          <!-- Sex (Vue Multiselect) -->
-          <div class="form-group">
-            <label>Sex:</label>
-            <Multiselect
-              v-model="sex"
-              :options="sexOptions"
-              class="custom-multiselect"
-              ref="sexRef"
-            >
-              <template #caret="{ toggle }">
-                <img
-                  :src="getIconUrl('drop_down_black.png')"
-                  alt="Dropdown"
-                  class="caret-icon"
-                  @mousedown.prevent
-                  @click.stop="toggle"
-                />
+            <!-- Sex -->
+            <div class="form-group">
+              <label>Sex:</label>
+              <template v-if="isEditMode">
+                <Multiselect
+                  v-model="formData.sex"
+                  :options="sexOptions"
+                  class="custom-multiselect"
+                  ref="sexRef"
+                >
+                  <template #caret="{ toggle }">
+                    <img
+                      :src="getIconUrl('drop_down_black.png')"
+                      alt="Dropdown"
+                      class="caret-icon"
+                      @mousedown.prevent
+                      @click.stop="toggle"
+                    />
+                  </template>
+                </Multiselect>
               </template>
-            </Multiselect>
-          </div>
+              <template v-else>
+                <input type="text" class="text-field" :value="userData.sex" readonly />
+              </template>
+            </div>
 
-          <!-- Blood Type (Vue Multiselect) -->
+          <!-- Blood Type -->
           <div class="form-group">
             <label>Blood Type:</label>
-            <Multiselect
-              v-model="bloodType"
-              :options="bloodTypeOptions"
-              class="custom-multiselect"
-              ref="bloodTypeRef"
-            >
-              <template #caret="{ toggle }">
-                <img
-                  :src="getIconUrl('drop_down_black.png')"
-                  alt="Dropdown"
-                  class="caret-icon"
-                  @mousedown.prevent
-                  @click.stop="toggle"
-                />
-              </template>
-            </Multiselect>
+            <template v-if="isEditMode">
+              <Multiselect
+                v-model="formData.blood_type"
+                :options="bloodTypeOptions"
+                class="custom-multiselect"
+                ref="bloodTypeRef"
+              >
+                <template #caret="{ toggle }">
+                  <img
+                    :src="getIconUrl('drop_down_black.png')"
+                    alt="Dropdown"
+                    class="caret-icon"
+                    @mousedown.prevent
+                    @click.stop="toggle"
+                  />
+                </template>
+              </Multiselect>
+            </template>
+            <template v-else>
+              <input type="text" class="text-field" :value="userData.blood_type" readonly />
+            </template>
           </div>
 
-          <!-- Parent/Guardian -->
+          <!-- Parent Guardian -->
           <div class="form-group">
-            <label>Parent/Guardian:</label>
-            <input type="text" class="text-field" v-model="parentGuardian" />
+            <label>Parent Guardian:</label>
+            <input 
+              type="text" 
+              class="text-field" 
+              v-model="formData.parent_guardian"
+              :readonly="!isEditMode" 
+            />
           </div>
 
-          <!-- Contact -->
+          <!-- Contact Number -->
           <div class="form-group">
-            <label>Contact:</label>
-            <input type="text" class="text-field" v-model="contact" />
+            <label>Contact Number:</label>
+            <input 
+              type="text" 
+              class="text-field" 
+              v-model="formData.contact_number"
+              :readonly="!isEditMode" 
+            />
           </div>
 
-          <!-- Remarks (Vue Multiselect) -->
+          <!-- Remarks -->
           <div class="form-group">
             <label>Remarks:</label>
-            <Multiselect
-              v-model="remarks"
-              :options="remarksOptions"
-              class="custom-multiselect"
-              ref="remarksRef"
-            >
-              <template #caret="{ toggle }">
-                <img
-                  :src="getIconUrl('drop_down_black.png')"
-                  alt="Dropdown"
-                  class="caret-icon"
-                  @mousedown.prevent
-                  @click.stop="toggle"
-                />
-              </template>
-            </Multiselect>
-          </div>
-
-          <!-- Annotation (Vue Multiselect) -->
-          <div class="form-group">
-            <label>Annotation:</label>
-            <Multiselect
-              v-model="annotation"
-              :options="annotationOptions"
-              class="custom-multiselect"
-              ref="annotationRef"
-            >
-              <template #caret="{ toggle }">
-                <img
-                  :src="getIconUrl('drop_down_black.png')"
-                  alt="Dropdown"
-                  class="caret-icon"
-                  @mousedown.prevent
-                  @click.stop="toggle"
-                />
-              </template>
-            </Multiselect>
+            <template v-if="isEditMode">
+              <Multiselect
+                v-model="formData.remarks"
+                :options="remarksOptions"
+                class="custom-multiselect"
+                ref="remarksRef"
+              >
+                <template #caret="{ toggle }">
+                  <img
+                    :src="getIconUrl('drop_down_black.png')"
+                    alt="Dropdown"
+                    class="caret-icon"
+                    @mousedown.prevent
+                    @click.stop="toggle"
+                  />
+                </template>
+              </Multiselect>
+            </template>
+            <template v-else>
+              <input type="text" class="text-field" :value="userData.remarks" readonly />
+            </template>
           </div>
 
           <!-- Philhealth No -->
           <div class="form-group">
             <label>Philhealth No:</label>
-            <input type="text" class="text-field" v-model="philhealthNo" />
+            <input 
+              type="text" 
+              class="text-field" 
+              v-model="formData.philhealth_no"
+              :readonly="!isEditMode" 
+            />
           </div>
         </main>
 
         <!-- Footer Section -->
         <footer class="form-footer">
-          <img
-            :src="getIconUrl('next_right.png')"
-            alt="Previous"
-            class="footer-arrow flip-horizontal"
-            @click="$emit('prev')"
+          <img 
+            :src="getIconUrl('next_right.png')" 
+            alt="Previous" 
+            class="footer-arrow flip-horizontal" 
+            @click="$emit('prev')" 
+            v-if="!isEditMode"
           />
-          <span class="page-indicator">
-            Page {{ currentPage }} of {{ totalPages }}
-          </span>
-          <img
-            :src="getIconUrl('next_right.png')"
-            alt="Next"
-            class="footer-arrow"
-            @click="$emit('next')"
+
+          <template v-if="!isEditMode">
+            <span class="page-indicator">Page {{ currentPage }} of {{ totalPages }}</span>
+          </template>
+          <template v-else>
+              <div class="edit-buttons">
+                <span class="cancel-btn" @click="cancelEdit">Cancel</span>
+                <button class="save-btn" @click="saveChanges">Save</button>
+              </div>
+          </template>
+
+          <img 
+            :src="getIconUrl('next_right.png')" 
+            alt="Next" 
+            class="footer-arrow" 
+            @click="$emit('next')" 
+            v-if="!isEditMode"
           />
         </footer>
       </div>
@@ -197,64 +264,83 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, watch, computed } from 'vue';
+import { defineProps, defineEmits } from 'vue';
 import Multiselect from "vue-multiselect";
 import "vue-multiselect/dist/vue-multiselect.css";
 
-// Define emits including 'close' for closing the form
 const emit = defineEmits(["close", "prev", "next"]);
-
-// Props to show/hide this form
 const props = defineProps({
-  visible: Boolean, // Controls the black mask & form
+  visible: Boolean,
+  userData: {
+    type: Object,
+    default: () => ({})
+  },
+  currentPage: {
+    type: Number,
+    default: 1
+  },
+  totalPages: {
+    type: Number,
+    default: 1
+  }
 });
 
-// Example form data & state
-const idNumber = ref("");
-const name = ref("");
-const typeOfDisability = ref(null);
-const address = ref("");
-const dateOfBirth = ref("");
-const dateIssued = ref("");
-const sex = ref(null);
-const bloodType = ref(null);
-const parentGuardian = ref("");
-const contact = ref("");
-const remarks = ref(null);
-const annotation = ref(null);
-const philhealthNo = ref("");
+// Reactive flag for toggling edit mode
+const isEditMode = ref(false);
 
-// Options for multiselect
+
+const educationOptions = ["Elementary Graduate", "High School Graduate", "College Graduate", "Vocational", "None"];
 const disabilityOptions = ["Autism", "Visual Impairment", "Hearing Impairment"];
 const sexOptions = ["Male", "Female"];
 const bloodTypeOptions = ["A+", "B+", "O+", "AB+"];
 const remarksOptions = ["New Applicant", "Renewal", "Missing Documents"];
-const annotationOptions = ["None", "Requires Assistance", "Pending"];
+// const annotationOptions = ["None", "Requires Assistance", "Pending"];
 
-// Close function for the back icon
-function closeForm() {
-  emit("close");
+// Create a local reactive copy of userData to allow editing
+const formData = ref({ ...props.userData });
+
+// Update formData when userData changes
+watch(() => props.userData, (newData) => {
+  formData.value = { ...newData };
+}, { immediate: true });
+
+// Function to toggle edit mode
+function toggleEditMode() {
+  isEditMode.value = !isEditMode.value;
 }
-
-// Define refs for each Multiselect component
-const typeOfDisabilityRef = ref(null);
-const sexRef = ref(null);
-const bloodTypeRef = ref(null);
-const remarksRef = ref(null);
-const annotationRef = ref(null);
-
-// Define page indicator variables
-const currentPage = ref(1);
-const totalPages = ref(2);
-
-// For address expansion
-const addressFocus = ref(false);
 
 // Helper function for icons
 function getIconUrl(fileName) {
   return new URL(`/src/assets/icons/${fileName}`, import.meta.url).href;
 }
+
+function closeForm() {
+  emit("close");
+}
+
+// 💡 Computeds for formatted dates
+const formattedBirthdate = computed(() => formatDate(formData.value.birthdate));
+const formattedDateIssued = computed(() => formatDate(formData.value.date_issued));
+
+function formatDate(dateString) {
+  if (!dateString) return '';
+  const options = { year: "numeric", month: "short", day: "numeric" };
+  return new Date(dateString).toLocaleDateString(undefined, options);
+}
+
+function cancelEdit() {
+  formData.value = { ...props.userData };
+  isEditMode.value = false;
+}
+
+function saveChanges() {
+  // Emit event or do API call here
+  console.log("Saved data:", formData.value);
+  isEditMode.value = false;
+}
 </script>
+
 
 
 
@@ -432,12 +518,13 @@ function getIconUrl(fileName) {
 
 /* Page Indicator */
 .page-indicator {
+  margin-top: 2.5em; /* ~8px */
   color: #707680;
   font-size: 0.875rem; /* ~14px */
 }
-
 /* Footer Arrow */
 .footer-arrow {
+  margin-top: 2.8em; /* ~8px */
   width: 1em;  /* ~16px if base is 16px */
   height: 1em;
   cursor: pointer;
@@ -490,6 +577,39 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   cursor: pointer;
 }
 
+.edit-buttons {
+  margin-top: 0.2em; /* ~8px */
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.cancel-btn {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 14px;
+  color: lightgray;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.save-btn {
+  background-color: #066aff;
+  color: white;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 14px;
+  padding: 8px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.save-btn:hover {
+  background-color: #0051cc;
+}
+.cancel-btn:hover {
+  color: #202020;
+}
 
 /* Responsive Adjustments */
 @media (max-width: 37.5em) { /* 600px / 16 = 37.5em */

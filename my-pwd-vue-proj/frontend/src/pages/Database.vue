@@ -2,50 +2,71 @@
   <div class="database-container">
     <!-- Dashboard Header -->
     <div class="dashboard-header">
-      <DashboardHeader title="Database" />
+      <DashboardHeader title="Dashboard" @search="handleSearch" />
     </div>
 
     <!-- Table Card -->
     <div class="table-card">
+
       <!-- Filters Section -->
       <div class="table-filters">
         <multiselect
-          v-for="(filter, index) in selectedFilters"
-          :key="index"
-          v-model="selectedFilters[index]"
-          :options="filterOptions"
+          v-model="selectedFilters[0]"
+          :options="sexOptions"
           class="custom-dropdown"
-        ></multiselect>
+          placeholder="Select Sex"
+        />
+        <multiselect
+          v-model="selectedFilters[1]"
+          :options="statusOptions"
+          class="custom-dropdown"
+          placeholder="Select Status"
+        />
+
+        <!-- Date Picker -->
+        <Datepicker
+          v-model="selectedDate"
+          :enable-time-picker="false"
+          :placeholder="'Select Date'"
+          class="custom-date-picker"
+        />
       </div>
 
       <!-- Table -->
       <div class="table-wrapper">
         <table class="data-table">
-          <!-- Table Headers -->
           <thead>
             <tr>
               <th>Name</th>
-              <th>Gender</th>
-              <th>Type of Disability</th>
+              <th>Sex</th>
+              <th>PWD ID</th>
               <th>Status</th>
-              <th>Date</th>
-              <th>More</th>
+              <th>Date Issued</th>
+              <th class="more-header">More</th>
             </tr>
           </thead>
-          <!-- Table Body -->
           <tbody>
-            <tr v-for="(row, index) in tableData" :key="index">
-              <td>{{ row.name }}</td>
-              <td>{{ row.gender }}</td>
-              <td>{{ row.disability }}</td>
-              <td :class="{'valid': row.status === 'Valid', 'invalid': row.status === 'Invalid'}">
+            <tr v-if="filteredTableData.length === 0">
+              <td colspan="6" style="text-align: center;">No Match Found</td>
+            </tr>
+            <tr v-for="(row, index) in filteredTableData" :key="index">
+              <td>
+                <span class="name-number">{{ row.user_number }}.</span>
+                <span class="name-text">{{ row.full_name }}</span>
+              </td>
+              <td>{{ row.sex }}</td>
+              <td>{{ row.pwd_id }}</td>
+              <td :class="{
+                    'valid': row.status.toLowerCase() === 'valid',
+                    'invalid': row.status.toLowerCase() === 'invalid'
+                  }">
                 {{ row.status }}
               </td>
-              <td>{{ row.date }}</td>
-              <td class="more-icon">
-                <MoreOptions 
-                  :index="index" 
-                  :isOpen="activeIndex === index" 
+              <td>{{ formatDate(row.date_issued) }}</td>
+              <td class="more-cell">
+                <MoreOptions
+                  :index="index"
+                  :isOpen="activeIndex === index"
                   @toggle="toggleDropdown"
                   @openForm="openFormFromRow"
                 />
@@ -59,45 +80,135 @@
 </template>
 
 <script>
+import axios from "axios";
 import DashboardHeader from "@/components/DashboardHeader.vue";
 import Multiselect from "vue-multiselect";
-import "vue-multiselect/dist/vue-multiselect.css";
 import MoreOptions from "@/components/MoreOptions.vue";
+import Datepicker from "@vuepic/vue-datepicker";
+import "@vuepic/vue-datepicker/dist/main.css";
 
 export default {
   name: "Database",
-  components: { DashboardHeader, Multiselect, MoreOptions },
+  components: {
+    DashboardHeader,
+    Multiselect,
+    MoreOptions,
+    Datepicker
+  },
   data() {
     return {
-      selectedFilters: ["All", "All", "All", "All", "Select Date"],
-      filterOptions: ["All", "Example"],
-      tableData: [
-        { name: "Kristell Uchiniga", gender: "Female", disability: "Autism", status: "Valid", date: "28/02/2025" },
-        { name: "Bernie Bernardo", gender: "Male", disability: "Visual Impairment", status: "Valid", date: "19/03/2025" },
-        { name: "Jayda McKinney", gender: "Female", disability: "Mobility", status: "Invalid", date: "20/03/2025" },
-        { name: "Alexa Peters", gender: "Female", disability: "Impairment", status: "Valid", date: "23/03/2025" },
-        { name: "Kobe Fleming", gender: "Male", disability: "Hearing Impairment", status: "Invalid", date: "10/04/2025" },
-        { name: "Reagan Xiong", gender: "Male", disability: "Epilepsy", status: "Invalid", date: "15/05/2025" },
-      ],
-      activeIndex: null, // Track which row is currently active
+      selectedFilters: ["All", "All"], // Default filters
+      sexOptions: ["All", "Male", "Female"], // Options for sex filter
+      statusOptions: ["All", "Valid", "Invalid"], // Options for status filter
+      selectedDate: null,
+      tableData: [],
+      activeIndex: null,
+      socket: null,
+      searchQuery: "", // For search input
     };
   },
-  methods: {
-    toggleDropdown(rowIndex) {
-      if (this.activeIndex === rowIndex) {
-        // If the same row is clicked, toggle it
-        this.activeIndex = null;
-      } else {
-        // If a different row is clicked, set that as active
-        this.activeIndex = rowIndex;
-      }
-    },
-    openFormFromRow(rowIndex) {
-    // Emit an event upward to AdminLayout
-    this.$emit("openForm"); 
-      // If you need to pass data, you can do so: e.g. this.$emit("openForm", this.tableData[rowIndex])
+  computed: {
+    filteredTableData() {
+      return this.tableData.filter(row => {
+        const sexMatch = this.selectedFilters[0] === "All" || row.sex.toLowerCase() === this.selectedFilters[0].toLowerCase();
+        const statusMatch = this.selectedFilters[1] === "All" || row.status.toLowerCase() === this.selectedFilters[1].toLowerCase();
+        return sexMatch && statusMatch;
+      });
     }
   },
+  mounted() {
+    this.fetchDatabaseData();
+    this.setupWebSocket();
+  },
+  methods: {
+    fetchDatabaseData() {
+      axios
+        .get("http://localhost:4000/api/users")
+        .then((response) => {
+          this.tableData = response.data;
+        })
+        .catch((error) => {
+          console.error("Error fetching data:", error);
+        });
+    },
+    searchUsers() {
+      const query = this.searchQuery.trim();
+
+      if (query === "") {
+        // If empty, reload the original data
+        this.fetchDatabaseData();
+        return;
+      }
+
+      axios
+        .get("http://localhost:4000/api/search", {
+          params: {
+            page: "report", // Same structure as your database table
+            query
+          }
+        })
+        .then((response) => {
+          const results = response.data;
+
+          if (results.length && results[0].noMatch) {
+            this.tableData = [];
+          } else {
+            this.tableData = results;
+          }
+        })
+        .catch((error) => {
+          console.error("Error searching data:", error);
+        });
+    },
+    handleSearch(query) {
+      this.searchQuery = query;
+      this.searchUsers();
+    },
+    setupWebSocket() {
+      this.socket = new WebSocket("ws://localhost:4000");
+
+      this.socket.onopen = () => {
+        console.log("WebSocket connection opened");
+      };
+
+      this.socket.onmessage = (event) => {
+        const updatedData = JSON.parse(event.data);
+        this.tableData = updatedData;
+      };
+
+      this.socket.onclose = () => {
+        console.log("WebSocket connection closed");
+      };
+    },
+    toggleDropdown(rowIndex) {
+      this.activeIndex = this.activeIndex === rowIndex ? null : rowIndex;
+    },
+    async openFormFromRow(rowIndex) {
+      try {
+        const user = this.tableData[rowIndex];
+        const [basicResponse, detailsResponse] = await Promise.all([
+          axios.get(`http://localhost:4000/api/users/${user.pwd_id}`),
+          axios.get(`http://localhost:4000/api/users/details/${user.pwd_id}`)
+        ]);
+        const userData = {
+          ...basicResponse.data,
+          ...detailsResponse.data
+        };
+        this.$emit("openForm", userData);
+      } catch (error) {
+        console.error("Error fetching user details:", error);
+      }
+    },
+    formatDate(dateString) {
+      const options = { year: "numeric", month: "short", day: "numeric" };
+      return new Date(dateString).toLocaleDateString(undefined, options);
+    }
+  },
+  beforeDestroy() {
+    if (this.socket) {
+      this.socket.close();
+    }
+  }
 };
 </script>
 
@@ -129,8 +240,10 @@ export default {
   padding-left: 30px;
   height: calc(100vh - 230px);
   min-height: 300px;
-  overflow: hidden;
+  overflow: auto;
   padding-bottom: 14px;
+  z-index: 1;
+  position: relative;
 }
 
 /* Filters Section */
@@ -146,6 +259,26 @@ export default {
   width: 180px;
   height: 50px;
   font-family: 'montserrat', sans-serif;
+}
+
+.table-filters {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 1rem;
+}
+
+.custom-date-picker {
+  width: 180px;
+  font-family: 'montserrat', sans-serif;
+}
+
+.custom-date-picker {
+  width: 180px;
+  height: 52px; /* ➕ Add 2px */
+  border-radius: 5px;
+  font-family: 'montserrat', sans-serif;
+  box-sizing: border-box;
+  transition: border 0.3s ease-in-out;
 }
 
 /* ✅ Add black border when hovering over the dropdown */
@@ -181,6 +314,8 @@ export default {
 .custom-dropdown .multiselect__content-wrapper {
   width: 100% !important;
   max-width: 100% !important;
+  position: absolute !important;
+  z-index: 9999 !important;
 }
 
 /* ✅ Custom scrollbar for dropdown */
@@ -195,6 +330,7 @@ export default {
 
 /* Table Wrapper */
 .table-wrapper {
+  position: relative;
   flex-grow: 1; /* ✅ Allows table to expand */
   overflow-y: auto;
   max-height: calc(100% - 50px);
@@ -202,9 +338,7 @@ export default {
 
 /* Table */
 .data-table {
-  height: 300px;
-  min-height: 400px;
-  width: 98%;
+  width: 100%;
   border-collapse: collapse;
 }
 
@@ -213,7 +347,7 @@ export default {
   position: sticky;
   top: 0;
   background: white;
-  z-index: 1;
+  z-index: 200;
   font-family: 'montserrat', sans-serif;
   font-size: 20px;
   font-weight: 700;
@@ -221,8 +355,38 @@ export default {
   padding: 12px 15px;
   color: black;
   border-bottom: 3px solid #ededed;
-  padding-left: 20px;
   white-space: nowrap;
+}
+
+.data-table thead tr {
+  position: sticky;
+  top: 0;
+  z-index: 190;
+  background: white;
+}
+
+
+.data-table td.more-icon {
+  position: sticky;
+  right: 0;
+  z-index: 50; /* Lower than header */
+  background: white;
+  padding-right: 30px;
+  text-align: right;
+}
+
+
+.table-card,
+.table-wrapper,
+.database-container {
+  position: relative;
+  z-index: 1;
+}
+
+.custom-dropdown .multiselect__content-wrapper {
+  position: absolute !important;
+  z-index: 9999 !important;
+  background: white;
 }
 
 /* Table Rows */
@@ -254,53 +418,51 @@ export default {
   border-bottom: none;
 }
 
-/* Status Colors */
-.data-table td.valid {
+td[class="valid"] {
   color: #00bf63;
-  font-weight: bold;
+  font-weight: 600;
 }
 
-.data-table td.invalid {
+td[class="invalid"] {
   color: #ff3131;
-  font-weight: bold;
+  font-weight: 600;
 }
-
 /* More Icon Column */
 .more-icon {
-  position: relative;
+  position: sticky;
+  z-index: 10;
   width: 20px;
   cursor: pointer;
   margin-left: 18px;
 }
 
+.name-number {
+  display: inline-block;
+  width: 0.5em;
+  text-align: right;
+  margin-right: 1.4em;
+  vertical-align: top;
+}
+
+.name-text {
+  display: inline-block;
+  vertical-align: top;
+  max-width: calc(100% - 2.4em); /* Adjust based on the number width */
+  word-break: break-word;
+}
+
+
 /* Individual Header Styles */
-.data-table th:nth-child(1) { /* Name */
-  width: 15%;
-  /* Add any specific styles for the Name column here */
-}
-
-.data-table th:nth-child(2) { /* Gender */
-  width: 10%;
-  /* Add any specific styles for the Gender column here */
-}
-
-.data-table th td:nth-child(3) { /* Type of Disability */
-  width: 20%;
-  /* Add any specific styles for the Type of Disability column here */
-}
-
-.data-table th:nth-child(4) { /* Status */
-  width: 10%;
-  /* Add any specific styles for the Status column here */
-}
-
-.data-table th:nth-child(5) { /* Date */
-  width: 10%;
-  /* Add any specific styles for the Date column here */
-}
-
-.data-table th:nth-child(6) { /* More */
-  width: 10%;
-  /* Add any specific styles for the More column here */
-}
+.data-table th:nth-child(1),
+.data-table td:nth-child(1) { width: 20%; min-width: 150px; }
+.data-table th:nth-child(2),
+.data-table td:nth-child(2) { width: 10%; min-width: 80px; }
+.data-table th:nth-child(3),
+.data-table td:nth-child(3) { width: 10%; min-width: 80px; }
+.data-table th:nth-child(4),
+.data-table td:nth-child(4) { width: 9%; min-width: 90px; }
+.data-table th:nth-child(5),
+.data-table td:nth-child(5) { width: 9%; min-width: 100px; }
+.data-table th:nth-child(6),
+.data-table td:nth-child(6) { width: 5%; }
 </style>

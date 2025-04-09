@@ -1,36 +1,50 @@
+<!-- DashboardHeader.vue -->
 <template>
-  <!-- Dashboard Header Card -->
   <div class="dashboard-header-card">
     <div class="dashboard-left">
       <img :src="getIconUrl('menu_bar_black.png')" alt="Dashboard Icon" class="dashboard-icon" />
-      <h1 class="dashboard-title">{{ title }}</h1> <!-- Dynamically set the title -->
-
-      <!-- ✅ Show the paragraph only when the user is on the "Create" page -->
-      <p v-if="$route.path === '/admin/create'" class="create-subtitle">IDNow - PWD Old Members</p>
+      <h1 class="dashboard-title">{{ title }}</h1>
+      <!-- Optional subtitle on the Create page -->
+      <p v-if="$route.path === '/admin/create'" class="create-subtitle">
+        IDNow - PWD Old Members
+      </p>
     </div>
 
-    <!-- Conditional Rendering for Icons or Search Bar -->
-    <div v-if="$route.path === '/admin/create'" class="icons-container">
+    <!-- When not on the Create page, show the search bar -->
+    <div v-if="$route.path !== '/admin/create'" class="search-bar">
+      <img :src="getIconUrl('search_black.png')" alt="Search Icon" class="search-icon" />
+      <input
+        type="text"
+        v-model="searchText"
+        placeholder="Search here"
+        @input="onSearch"
+        class="search-input"
+      />
+    </div>
+    <!-- Else show icons if on the Create page -->
+    <div v-else class="icons-container">
       <img :src="getIconUrl('printer_grey.png')" alt="Printer" class="icon" />
       <img :src="getIconUrl('new_document_grey.png')" alt="New Document" class="icon" />
     </div>
-    <div v-else class="search-bar">
-      <img :src="getIconUrl('search_black.png')" alt="Search" class="search-icon" />
-      <input type="text" placeholder="Search here" class="search-input" />
-    </div>
-
   </div>
 </template>
 
 <script>
 export default {
+  name: "DashboardHeader",
   props: {
-    title: {
-      type: String,
-      required: true
-    }
+    title: { type: String, required: true }
+  },
+  data() {
+    return {
+      searchText: ""
+    };
   },
   methods: {
+    onSearch() {
+      // Emit the search event to be handled by the parent component.
+      this.$emit("search", this.searchText);
+    },
     getIconUrl(fileName) {
       return new URL(`/src/assets/icons/${fileName}`, import.meta.url).href;
     }

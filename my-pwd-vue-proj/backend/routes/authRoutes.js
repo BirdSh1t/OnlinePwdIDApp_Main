@@ -9,7 +9,7 @@ router.post('/login', async (req, res) => {
 
     try {
         const [rows] = await pool.promise().query(
-            "SELECT * FROM employees WHERE BINARY username = ? AND BINARY pass = ?", 
+            "SELECT * FROM admins WHERE BINARY username = ? AND BINARY pass = ?", 
             [username, pass] 
         );
 

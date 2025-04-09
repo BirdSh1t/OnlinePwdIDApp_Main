@@ -24,7 +24,9 @@ const props = defineProps({
   isOpen: Boolean,
   index: Number,
 });
-const emit = defineEmits(["toggle"]);
+
+const emit = defineEmits(["toggle", "openForm"]);
+
 
 const emitToggle = () => {
   emit("toggle", props.index);
@@ -32,7 +34,7 @@ const emitToggle = () => {
 
 const viewRecord = () => {
   emit("openForm", props.index);
-  isDropdownOpen.value = false;
+  emit("toggle", props.index); // This should close the dropdown in parent
 };
 
 const archiveRecord = () => {

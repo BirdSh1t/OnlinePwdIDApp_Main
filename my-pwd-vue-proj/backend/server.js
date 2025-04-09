@@ -3,8 +3,13 @@ import bodyParser from 'body-parser';
 import morgan from 'morgan';
 import cors from 'cors';
 import authRoutes from './routes/authRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
+import { createServer } from 'http';
+import { startWebSocketServer } from './websocketServer.js';
+import { pool } from './config/database.js'; // Assuming you export pool here
 
-const app = express(); 
+const app = express();
+const server = createServer(app); // HTTP server needed for WebSocket
 
 // ✅ Middleware
 app.use(morgan('dev'));
@@ -13,13 +18,17 @@ app.use(bodyParser.json());
 app.use(express.json());
 
 app.get('/', (req, res) => {
-    res.send('Welcome to the PWD ID Application API!');
+  res.send('Welcome to the PWD ID Application API!');
 });
 
-// ✅ Use Routes
+// ✅ Routes
 app.use('/api/auth', authRoutes);
+app.use('/api', adminRoutes);
+
+// ✅ WebSocket setup
+startWebSocketServer(server, pool);
 
 const PORT = 4000;
-app.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
+server.listen(PORT, () => {
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
 });
