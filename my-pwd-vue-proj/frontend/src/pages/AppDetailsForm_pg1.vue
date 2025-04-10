@@ -97,26 +97,29 @@
           <!-- Birthdate -->
           <div class="form-group">
             <label>Birthdate:</label>
-            <div v-if="!isEditMode" class="text-field">{{ formattedBirthdate }}</div>
-            <input
+            <div v-if="!isEditMode" class="text-field custom-date-display">{{ formattedBirthdate }}</div>
+            <Datepicker
               v-else
-              type="date"
-              class="text-field"
               v-model="formData.birthdate"
+              :format="'yyyy-MM-dd'"
+              :enable-time-picker="false"
+              input-class="text-field custom-date-picker"
             />
           </div>
 
-            <!-- Date Issued -->
-            <div class="form-group">
-              <label>Date Issued:</label>
-              <div v-if="!isEditMode" class="text-field">{{ formattedDateIssued }}</div>
-              <input
-                v-else
-                type="date"
-                class="text-field"
-                v-model="formData.date_issued"
-              />
-            </div>
+          <!-- Date Issued -->
+          <div class="form-group">
+            <label>Date Issued:</label>
+            <div v-if="!isEditMode" class="text-field custom-date-display">{{ formattedDateIssued }}</div>
+            <Datepicker
+              v-else
+              v-model="formData.date_issued"
+              :format="'yyyy-MM-dd'"
+              :enable-time-picker="false"
+              input-class="text-field custom-date-picker"
+            />
+          </div>
+
 
             <!-- Sex -->
             <div class="form-group">
@@ -264,10 +267,14 @@
 </template>
 
 <script setup>
+import axios from "axios";
 import { ref, watch, computed } from 'vue';
 import { defineProps, defineEmits } from 'vue';
 import Multiselect from "vue-multiselect";
 import "vue-multiselect/dist/vue-multiselect.css";
+import Datepicker from "@vuepic/vue-datepicker";
+
+
 
 const emit = defineEmits(["close", "prev", "next"]);
 const props = defineProps({
@@ -334,10 +341,29 @@ function cancelEdit() {
   isEditMode.value = false;
 }
 
+function formatDateToMySQL(date) {
+  if (!date) return null;
+  return new Date(date).toISOString().split("T")[0]; // Extract just the date part
+}
+
 function saveChanges() {
-  // Emit event or do API call here
-  console.log("Saved data:", formData.value);
-  isEditMode.value = false;
+  // Format dates before sending
+  const payload = {
+    ...formData.value,
+    birthdate: formatDateToMySQL(formData.value.birthdate),
+    date_issued: formatDateToMySQL(formData.value.date_issued)
+  };
+
+  axios
+    .put(`http://localhost:4000/api/users/page1/${formData.value.pwd_id}`, payload)
+    .then(response => {
+      console.log("Updated user data:", response.data);
+      isEditMode.value = false;
+      emit("close"); // Optional: close the form after saving
+    })
+    .catch(error => {
+      console.error("Error updating user:", error);
+    });
 }
 </script>
 
@@ -575,6 +601,20 @@ function saveChanges() {
 /**calendar icon for date **/
 input[type="date"]::-webkit-calendar-picker-indicator {
   cursor: pointer;
+}
+
+.custom-date-picker {
+  width: 180px;
+  font-family: 'montserrat', sans-serif;
+}
+
+.custom-date-picker {
+  width: 180px;
+  height: 52px; /* ➕ Add 2px */
+  border-radius: 5px;
+  font-family: 'montserrat', sans-serif;
+  box-sizing: border-box;
+  transition: border 0.3s ease-in-out;
 }
 
 .edit-buttons {

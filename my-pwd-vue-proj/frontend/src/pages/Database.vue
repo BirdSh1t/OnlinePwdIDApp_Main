@@ -30,52 +30,52 @@
           :placeholder="'Select Date'"
           class="custom-date-picker"
         />
+        </div>
+        
+        <!-- Table -->
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Sex</th>
+                <th>PWD ID</th>
+                <th>Status</th>
+                <th>Date Issued</th>
+                <th class="more-header">More</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-if="filteredTableData.length === 0">
+                <td colspan="6" style="text-align: center;">No Match Found</td>
+              </tr>
+              <tr v-for="(row, index) in filteredTableData" :key="index">
+                <td>
+                  <span class="name-number">{{ row.user_number }}.</span>
+                  <span class="name-text">{{ row.full_name }}</span>
+                </td>
+                <td>{{ row.sex }}</td>
+                <td>{{ row.pwd_id }}</td>
+                <td :class="{
+                      'valid': row.status.toLowerCase() === 'valid',
+                      'invalid': row.status.toLowerCase() === 'invalid'
+                    }">
+                  {{ row.status }}
+                </td>
+                <td>{{ formatDate(row.date_issued) }}</td>
+                <td class="more-cell">
+                  <MoreOptions
+                    :index="index"
+                    :isOpen="activeIndex === index"
+                    @toggle="toggleDropdown"
+                    @openForm="openFormFromRow"
+                  />
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
-
-      <!-- Table -->
-      <div class="table-wrapper">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Sex</th>
-              <th>PWD ID</th>
-              <th>Status</th>
-              <th>Date Issued</th>
-              <th class="more-header">More</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-if="filteredTableData.length === 0">
-              <td colspan="6" style="text-align: center;">No Match Found</td>
-            </tr>
-            <tr v-for="(row, index) in filteredTableData" :key="index">
-              <td>
-                <span class="name-number">{{ row.user_number }}.</span>
-                <span class="name-text">{{ row.full_name }}</span>
-              </td>
-              <td>{{ row.sex }}</td>
-              <td>{{ row.pwd_id }}</td>
-              <td :class="{
-                    'valid': row.status.toLowerCase() === 'valid',
-                    'invalid': row.status.toLowerCase() === 'invalid'
-                  }">
-                {{ row.status }}
-              </td>
-              <td>{{ formatDate(row.date_issued) }}</td>
-              <td class="more-cell">
-                <MoreOptions
-                  :index="index"
-                  :isOpen="activeIndex === index"
-                  @toggle="toggleDropdown"
-                  @openForm="openFormFromRow"
-                />
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -108,11 +108,17 @@ export default {
     };
   },
   computed: {
-    filteredTableData() {
+  filteredTableData() {
       return this.tableData.filter(row => {
         const sexMatch = this.selectedFilters[0] === "All" || row.sex.toLowerCase() === this.selectedFilters[0].toLowerCase();
         const statusMatch = this.selectedFilters[1] === "All" || row.status.toLowerCase() === this.selectedFilters[1].toLowerCase();
-        return sexMatch && statusMatch;
+
+        const dateMatch = !this.selectedDate || (
+          row.date_issued &&
+          new Date(row.date_issued).toDateString() === new Date(this.selectedDate).toDateString()
+        );
+
+        return sexMatch && statusMatch && dateMatch;
       });
     }
   },
@@ -187,8 +193,8 @@ export default {
       try {
         const user = this.tableData[rowIndex];
         const [basicResponse, detailsResponse] = await Promise.all([
-          axios.get(`http://localhost:4000/api/users/${user.pwd_id}`),
-          axios.get(`http://localhost:4000/api/users/details/${user.pwd_id}`)
+          axios.get(`http://localhost:4000/api/users/page1/${user.pwd_id}`),
+          axios.get(`http://localhost:4000/api/users/page2/${user.pwd_id}`)
         ]);
         const userData = {
           ...basicResponse.data,

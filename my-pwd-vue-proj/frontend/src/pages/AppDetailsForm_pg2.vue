@@ -149,16 +149,18 @@
             <label>Member Since:</label>
 
             <!-- READ-ONLY MODE: display formatted date -->
-            <div v-if="!isEditMode" class="text-field" style="padding: 8px 12px; background: #f9f9f9;">
+            <div v-if="!isEditMode" class="text-field custom-date-display">
               {{ formattedMemberSince }}
             </div>
 
             <!-- EDIT MODE: date picker input -->
-            <input
+            <Datepicker
               v-else
-              type="date"
-              class="text-field"
               v-model="formData.member_since"
+              :format="'dd/MM/yyyy'"
+              :enable-time-picker="false"
+              type="date"
+              input-class="text-field custom-date-picker"
             />
           </div>
 
@@ -209,10 +211,12 @@
 </template>
 
 <script setup>
+import axios from 'axios';
 import { ref, watch, computed } from 'vue';
 import Multiselect from "vue-multiselect";
 import "vue-multiselect/dist/vue-multiselect.css";
 import { defineProps, defineEmits } from 'vue';
+import Datepicker from "@vuepic/vue-datepicker";
 
 const emit = defineEmits(["close", "prev", "next"]);
 const props = defineProps({
@@ -263,7 +267,7 @@ const formattedMemberSince = computed(() => formatDate(formData.value.member_sin
 
 function formatDate(dateString) {
   if (!dateString) return '';
-  const options = { year: "numeric", month: "short", day: "numeric" };
+  const options = { day: "numeric", month: "short", year: "numeric" };
   return new Date(dateString).toLocaleDateString(undefined, options);
 }
 
@@ -272,10 +276,33 @@ function cancelEdit() {
   isEditMode.value = false;
 }
 
-function saveChanges() {
-  console.log("Saved data:", formData.value);
-  isEditMode.value = false;
+function formatDateToMySQL(date) {
+  const d = new Date(date);
+  if (isNaN(d)) return null; // safety check
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
+
+function saveChanges() {
+  const payload = {
+    ...formData.value,
+    member_since: formatDateToMySQL(formData.value.member_since),
+  };
+
+  axios
+    .put(`http://localhost:4000/api/users/page2/${formData.value.pwd_id}`, payload)
+    .then(response => {
+      console.log("Updated user data:", response.data);
+      isEditMode.value = false;
+      emit("close");
+    })
+    .catch(error => {
+      console.error("Error updating user:", error.message);
+    });
+}
+
 </script>
 
 
@@ -494,6 +521,20 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .custom-multiselect .multiselect__tags {
   position: relative;
   padding-right: 1.875em; /* ~30px; ensure space for caret */
+}
+
+.custom-date-picker {
+  width: 180px;
+  font-family: 'montserrat', sans-serif;
+}
+
+.custom-date-picker {
+  width: 180px;
+  height: 52px; /* ➕ Add 2px */
+  border-radius: 5px;
+  font-family: 'montserrat', sans-serif;
+  box-sizing: border-box;
+  transition: border 0.3s ease-in-out;
 }
 
 /* Custom Caret Icon */
