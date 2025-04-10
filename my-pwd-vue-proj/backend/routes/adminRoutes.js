@@ -17,7 +17,6 @@ router.get("/users/pwd-list", async (req, res) => {
 });
 
 // Display data on report page
-// Display data on report page
 router.get("/users", async (req, res) => {
   try {
     const query = `
@@ -35,7 +34,7 @@ router.get("/users", async (req, res) => {
 
 
 // Display data on AppDetailsForm_pg1 
-router.get("/users/:pwd_id", async (req, res) => {
+router.get("/users/page1/:pwd_id", async (req, res) => {
   try {
     const { pwd_id } = req.params;
     const query = `
@@ -68,22 +67,107 @@ router.get("/users/:pwd_id", async (req, res) => {
   }
 });
 
-// Display data on AppDetailsForm_pg2
-router.get("/users/details/:pwd_id", async (req, res) => {
+
+// PUT endpoint to update user details (triggered from AppDetailsForm_pg1.vue)
+router.put("/users/page1/:pwd_id", async (req, res) => {
+  try {
+    const { pwd_id } = req.params;
+    // Destructure the expected fields from the request body.
+    const {
+      types_of_disability,
+      full_name,
+      education,
+      address,
+      birthdate,
+      date_issued,
+      sex,
+      blood_type,
+      parent_guardian,
+      contact_number,
+      remarks,
+      philhealth_no
+    } = req.body;
+    
+    const query = `
+      UPDATE users
+      SET
+        types_of_disability = ?,
+        full_name = ?,
+        education = ?,
+        address = ?,
+        birthdate = ?,
+        date_issued = ?,
+        sex = ?,
+        blood_type = ?,
+        parent_guardian = ?,
+        contact_number = ?,
+        remarks = ?,
+        philhealth_no = ?
+        WHERE pwd_id = ?
+    `;
+    
+    await pool.promise().query(query, [
+      types_of_disability,
+      full_name,
+      education,
+      address,
+      birthdate,
+      date_issued,
+      sex,
+      blood_type,
+      parent_guardian,
+      contact_number,
+      remarks,
+      philhealth_no,
+      pwd_id
+    ]);
+    
+    // Optionally query the updated record
+    const [updatedResults] = await pool.promise().query(
+      "SELECT * FROM users WHERE pwd_id = ?",
+      [pwd_id]
+    );
+
+    // Fetch the updated table and broadcast it to clients
+    const [updatedTable] = await pool.promise().query(`
+      SELECT number AS user_number, full_name, sex, pwd_id, status_ AS status, date_issued 
+      FROM users 
+      ORDER BY number ASC
+    `);
+
+    // Broadcast to all connected frontend clients
+    broadcastToClients(updatedTable);
+    
+    res.json(updatedResults[0] || { message: "User updated successfully" });
+  } catch (error) {
+    console.error("Error updating user details:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Moved outside the route handler since it's not used here
+function formatDateToMySQL(date) {
+  if (!date) return null;
+  return new Date(date).toISOString().split("T")[0];
+}
+
+
+// Display data on AppDetailsForm_pg2 /////////////////////
+router.get("/users/page2/:pwd_id", async (req, res) => {
   try {
     const { pwd_id } = req.params;
     const query = `
       SELECT
-        transfer_from,
         first_name,
+        transfer_from,
         middle_name,
-        surname,
         disability_cause,
+        surname,  
         care_of,
-        member_since,
-        barangay,
+        assistive_device,
         education,
-        assistive_device
+        member_since,
+        barangay
       FROM users
       WHERE pwd_id = ?
     `;
@@ -98,6 +182,80 @@ router.get("/users/details/:pwd_id", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+// PUT endpoint to update user details (triggered from AppDetailsForm_pg2.vue)
+router.put("/users/page2/:pwd_id", async (req, res) => {
+  try {
+    const { pwd_id } = req.params;
+
+    const {
+        first_name,
+        transfer_from,
+        middle_name,
+        disability_cause,
+        surname,  
+        care_of,
+        assistive_device,
+        education,
+        member_since,
+        barangay
+    } = req.body;
+
+    const query = `
+      UPDATE users
+      SET
+        first_name = ?,
+        transfer_from = ?,
+        middle_name = ?,
+        disability_cause = ?,
+        surname = ?,  
+        care_of = ?,
+        assistive_device = ?,
+        education = ?,
+        member_since = ?,
+        barangay = ?
+        WHERE pwd_id = ?
+    `;
+
+    await pool.promise().query(query, [
+        first_name,
+        transfer_from,
+        middle_name,
+        disability_cause,
+        surname,  
+        care_of,
+        assistive_device,
+        education,
+        member_since,
+        barangay,
+        pwd_id,
+    ]);
+
+    // Optional: return the updated record
+    const [updatedResults] = await pool.promise().query(
+      "SELECT * FROM users WHERE pwd_id = ?",
+      [pwd_id]
+    );
+
+    // 🔁 Broadcast the entire updated user table to all connected clients
+    const [updatedTable] = await pool.promise().query(`
+      SELECT number AS user_number, full_name, sex, pwd_id, status_ AS status, date_issued 
+      FROM users 
+      ORDER BY number ASC
+    `);
+
+    broadcastToClients(updatedTable);
+
+    res.json(updatedResults[0] || { message: "User updated successfully" });
+  } catch (error) {
+    console.error("Error updating user details:", error.message);
+    res.status(500).json({ error: error.message });
+  }  
+});
+
+
+
+
 
 
 
