@@ -105,24 +105,24 @@ export default {
       activeIndex: null,
       socket: null,
       searchQuery: "", // For search input
-    };
-  },
-  computed: {
-  filteredTableData() {
-      return this.tableData.filter(row => {
-        const sexMatch = this.selectedFilters[0] === "All" || row.sex.toLowerCase() === this.selectedFilters[0].toLowerCase();
-        const statusMatch = this.selectedFilters[1] === "All" || row.status.toLowerCase() === this.selectedFilters[1].toLowerCase();
+      };
+    },
+    computed: {
+    filteredTableData() {
+        return this.tableData.filter(row => {
+          const sexMatch = this.selectedFilters[0] === "All" || row.sex.toLowerCase() === this.selectedFilters[0].toLowerCase();
+          const statusMatch = this.selectedFilters[1] === "All" || row.status.toLowerCase() === this.selectedFilters[1].toLowerCase();
 
-        const dateMatch = !this.selectedDate || (
-          row.date_issued &&
-          new Date(row.date_issued).toDateString() === new Date(this.selectedDate).toDateString()
-        );
+          const dateMatch = !this.selectedDate || (
+            row.date_issued &&
+            new Date(row.date_issued).toDateString() === new Date(this.selectedDate).toDateString()
+          );
 
-        return sexMatch && statusMatch && dateMatch;
-      });
-    }
-  },
-  mounted() {
+          return sexMatch && statusMatch && dateMatch;
+        });
+      }
+    },
+    mounted() {
     this.fetchDatabaseData();
     this.setupWebSocket();
   },
@@ -258,6 +258,7 @@ export default {
   justify-content: flex-start;
   margin-bottom: 10px;
   gap: 8px;
+  color: #999;
 }
 
 /* Custom Dropdown */
@@ -456,7 +457,6 @@ td[class="invalid"] {
   max-width: calc(100% - 2.4em); /* Adjust based on the number width */
   word-break: break-word;
 }
-
 
 /* Individual Header Styles */
 .data-table th:nth-child(1),

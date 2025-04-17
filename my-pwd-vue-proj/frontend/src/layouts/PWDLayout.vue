@@ -1,6 +1,6 @@
 <template>
     <div class="pwd-layout">
-      <Header /> <!-- ✅ Use your custom header -->
+      <Header class="NavBar" />
       <router-view /> <!-- ✅ Load PWD pages inside -->
     </div>
   </template>
@@ -16,9 +16,17 @@
   
   <style scoped>
 
+  .NavBar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000; /* Ensure it stays above other content */
+  }
+
   .pwd-layout {
-    height: auto;
-    overflow-y: auto;
+    display: flex;
+    /* overflow-y: auto; */
     flex-direction: column;
   }
   </style>

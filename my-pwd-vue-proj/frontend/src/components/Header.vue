@@ -1,42 +1,92 @@
 <template>
-  <header class="header">
-    <!-- Left Section (Icons & Title) -->
+  <header :class="['header', { scrolled: isScrolled }]">
+    <!-- Left Section -->
     <div class="header-left">
       <img src="@/assets/icons/PWD-icon.png" alt="PWD Icon" class="header-icon" />
-      <h1 class="header-title">
-        Las Piñas City official appointment scheduling for PWDs
-      </h1>
+      <h1 class="header-title">Las Piñas City official appointment scheduling for PWDs</h1>
     </div>
 
     <!-- Navigation Links -->
     <nav class="nav-links">
-        <a href="#" class="nav-item">Home</a>
-        <a href="#" class="nav-item">Contact Us</a>
-      </nav>
+      <a href="#" class="nav-item">Home</a>
+      <a href="#" class="nav-item">Contact Us</a>
+    </nav>
 
-    <!-- Right Section (Search Bar & Navigation Links) -->
+    <!-- Right Section -->
     <div class="header-right">
-      <!-- Search Bar -->
       <div class="search-bar">
         <img src="@/assets/icons/search_black.png" alt="Search Icon" class="search-icon" />
         <input type="text" placeholder="Search..." class="search-input" />
-        <div class="search-underline"></div> <!-- ✅ Separate underline element -->
+        <div class="search-underline"></div>
       </div>
-
-      
     </div>
   </header>
 </template>
 
+
+<script>
+export default {
+  data() {
+    return {
+      isScrolled: false,
+    };
+  },
+  mounted() {
+  window.addEventListener('scroll', this.handleScroll);
+  },
+  beforeUnmount() {
+    window.removeEventListener('scroll', this.handleScroll);
+  },
+  handleScroll() {
+  console.log('scrollY:', window.scrollY);
+  this.isScrolled = window.scrollY > 0;
+},
+  methods: {
+  handleScroll() {
+    this.isScrolled = window.scrollY > 0;
+    }
+  },
+};
+</script>
+
+
+
 <style scoped>
 /* ✅ Header Container */
 .header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
   background-color: #57c031;
+  z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 33px 20px;
-  height: 30px;
+  padding: 13px 20px;
+  height: 60px;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+/* ✨ Scrolled Header Styles */
+.header.scrolled {
+  background-color: rgba(255, 255, 255, 0.85); /* more visible */
+  backdrop-filter: blur(4px); /* optional: glass effect */
+}
+
+
+::v-deep(.header.scrolled) .header-title,
+::v-deep(.header.scrolled) .nav-item {
+  color: #57c031;
+}
+
+::v-deep(.header.scrolled) .nav-item:hover {
+  color: darkgreen;
+}
+
+/* ✨ Change hover color in scrolled state */
+.header.scrolled .nav-item:hover {
+  color: darkgreen;
 }
 
 /* ✅ Left Section: PWD Icon & Title */
@@ -52,11 +102,13 @@
   margin-left: 40px;
 }
 
+/* Original Title Style */
 .header-title {
   color: #efe3c2;
   font-family: 'montserrat', sans-serif;
   font-size: 20px;
   font-weight: 400;
+  transition: color 0.3s;
 }
 
 /* ✅ Right Section: Search Bar & Nav Links */
@@ -78,16 +130,6 @@
   position: relative;
   margin-left: 0px; /* Space between search bar and nav links */
   margin-right: 40px; /* Space between search bar and nav links */
-}
-
-/* ✅ Customizable Search Underline */
-.search-underline {
-  position: absolute;
-  bottom: 5px;
-  left: 45px;
-  width: 55%;
-  height: 2px;
-  background-color: #a6a6a6; /* ✅ Color */
 }
 
 .search-icon {
@@ -126,4 +168,5 @@
 .nav-item:hover {
   color: #efe3c2;
 }
+
 </style>

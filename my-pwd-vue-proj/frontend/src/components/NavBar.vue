@@ -50,8 +50,8 @@ export default {
       navItems: [
         { name: "Dashboard", icon: "dashboard_white.png", link: "/admin/dashboard", customClass: 'dashboard-icon' },
         { name: "Report", icon: "records_white.png", link: "/admin/database", customClass: 'records-icon' },
-        { name: "Create", icon: "add_records_white.png", link: "/admin/create", customClass: 'create-icon' },
-        { name: "Calendar", icon: "calendar_white.png", link: "/admin/calendar", customClass: 'calendar-icon' },
+        { name: "Applicants", icon: "add_records_white.png", link: "/admin/create", customClass: 'create-icon' },
+        { name: "Schedule", icon: "calendar_white.png", link: "/admin/calendar", customClass: 'calendar-icon' },
         { name: "Archive", icon: "archive_white.png", link: "/admin/archive", customClass: 'archive-icon' }
       ],
     };
@@ -137,8 +137,15 @@ export default {
     width: 30px;
     height: 30px;
     margin-right: 15px; /* Adjust this value to control spacing between icon and text */
+    transition: transform 0.3s ease-in-out;
   }
 
+  .nav-icon:hover,
+  .logout-icon:hover,
+  .admin-icon:hover {
+    transform: scale(1.2);
+  }
+  
   .nav-text {
     font-size: 18px;
     margin-left: 10px; /* Adjust this value to control the position of the text */

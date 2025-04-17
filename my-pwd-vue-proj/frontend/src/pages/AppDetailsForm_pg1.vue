@@ -5,7 +5,7 @@
         <!-- Header Section -->
         <header class="form-header">
           <img :src="getIconUrl('back_button_grey.png')" alt="Back" class="back-icon" @click="closeForm" />
-          <h2 class="form-title">APPLICATION DETAILS</h2>
+          <h2 class="form-title">PERSONAL DETAILS</h2>
           <div class="right-header-group">
             <div class="picture-placeholder"></div>
             <!-- Clicking the edit icon toggles edit mode -->
@@ -78,10 +78,30 @@
             </template>
           </div>
 
-          <!-- PWD ID (always read-only) -->
+          <!-- Remarks -->
           <div class="form-group">
-            <label>PWD ID:</label>
-            <input type="text" class="text-field" :value="userData.pwd_id" readonly />
+            <label>Remarks:</label>
+            <template v-if="isEditMode">
+              <Multiselect
+                v-model="formData.remarks"
+                :options="remarksOptions"
+                class="custom-multiselect"
+                ref="remarksRef"
+              >
+                <template #caret="{ toggle }">
+                  <img
+                    :src="getIconUrl('drop_down_black.png')"
+                    alt="Dropdown"
+                    class="caret-icon"
+                    @mousedown.prevent
+                    @click.stop="toggle"
+                  />
+                </template>
+              </Multiselect>
+            </template>
+            <template v-else>
+              <input type="text" class="text-field" :value="userData.remarks" readonly />
+            </template>
           </div>
 
           <!-- Address -->
@@ -106,20 +126,6 @@
               input-class="text-field custom-date-picker"
             />
           </div>
-
-          <!-- Date Issued -->
-          <div class="form-group">
-            <label>Date Issued:</label>
-            <div v-if="!isEditMode" class="text-field custom-date-display">{{ formattedDateIssued }}</div>
-            <Datepicker
-              v-else
-              v-model="formData.date_issued"
-              :format="'yyyy-MM-dd'"
-              :enable-time-picker="false"
-              input-class="text-field custom-date-picker"
-            />
-          </div>
-
 
             <!-- Sex -->
             <div class="form-group">
@@ -195,15 +201,39 @@
             />
           </div>
 
-          <!-- Remarks -->
+            <!-- Date Issued -->
           <div class="form-group">
-            <label>Remarks:</label>
+            <label>Date Issued:</label>
+            <div v-if="!isEditMode" class="text-field custom-date-display">{{ formattedDateIssued }}</div>
+            <Datepicker
+              v-else
+              v-model="formData.date_issued"
+              :format="'yyyy-MM-dd'"
+              :enable-time-picker="false"
+              input-class="text-field custom-date-picker"
+            />
+          </div>
+
+          <!-- Philhealth No -->
+          <div class="form-group">
+            <label>Philhealth No:</label>
+            <input 
+              type="text" 
+              class="text-field" 
+              v-model="formData.philhealth_no"
+              :readonly="!isEditMode" 
+            />
+          </div>
+
+          <!-- Annotation -->
+          <div class="form-group">
+            <label>Annotation:</label>
             <template v-if="isEditMode">
               <Multiselect
-                v-model="formData.remarks"
-                :options="remarksOptions"
+                v-model="formData.annotation"
+                :options="annotationOptions"
                 class="custom-multiselect"
-                ref="remarksRef"
+                ref="annotationRef"
               >
                 <template #caret="{ toggle }">
                   <img
@@ -217,20 +247,9 @@
               </Multiselect>
             </template>
             <template v-else>
-              <input type="text" class="text-field" :value="userData.remarks" readonly />
+              <input type="text" class="text-field" :value="userData.annotation" readonly />
             </template>
-          </div>
-
-          <!-- Philhealth No -->
-          <div class="form-group">
-            <label>Philhealth No:</label>
-            <input 
-              type="text" 
-              class="text-field" 
-              v-model="formData.philhealth_no"
-              :readonly="!isEditMode" 
-            />
-          </div>
+          </div>         
         </main>
 
         <!-- Footer Section -->
@@ -302,7 +321,8 @@ const disabilityOptions = ["Autism", "Visual Impairment", "Hearing Impairment"];
 const sexOptions = ["Male", "Female"];
 const bloodTypeOptions = ["A+", "B+", "O+", "AB+"];
 const remarksOptions = ["New Applicant", "Renewal", "Missing Documents"];
-// const annotationOptions = ["None", "Requires Assistance", "Pending"];
+const annotationOptions = ["Pending", "Rejected", "Verified and Approve"];
+
 
 // Create a local reactive copy of userData to allow editing
 const formData = ref({ ...props.userData });

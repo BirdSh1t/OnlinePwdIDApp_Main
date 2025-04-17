@@ -5,7 +5,7 @@
         <!-- Header Section -->
         <header class="form-header">
           <img :src="getIconUrl('back_button_grey.png')" alt="Back" class="back-icon" @click="closeForm" />
-          <h2 class="form-title">APPLICATION DETAILS</h2>
+          <h2 class="form-title">OTHER DETAILS</h2>
           <div class="right-header-group">
             <div class="picture-placeholder"></div>
             <img :src="getIconUrl('edit_black.png')" alt="Edit" class="edit-icon" @click="toggleEditMode" />
@@ -24,6 +24,14 @@
               <input type="text" class="text-field" :value="userData.first_name" readonly />
             </template>
           </div>
+
+          <!-- PWD ID (always read-only) -->
+          <div class="form-group">
+            <label>PWD ID:</label>
+            <input type="text" class="text-field" :value="userData.pwd_id" readonly />
+          </div>
+
+
 
           <!-- Transfer From -->
           <div class="form-group">
@@ -82,6 +90,7 @@
               <input type="text" class="text-field" :value="userData.surname" readonly />
             </template>
           </div>
+
 
           <!-- Care Of -->
           <div class="form-group">
@@ -174,6 +183,17 @@
               <input type="text" class="text-field" :value="userData.barangay" readonly />
             </template>
           </div>
+
+          <!-- Barangay -->
+          <div class="form-group">
+            <label>Occupation:</label>
+            <template v-if="isEditMode">
+              <input type="text" class="text-field" v-model="formData.occupation" />
+            </template>
+            <template v-else>
+              <input type="text" class="text-field" :value="userData.barangay" readonly />
+            </template>
+          </div>
           </main>
 
         <!-- Footer Section -->
@@ -242,7 +262,7 @@ const isEditMode = ref(false);
 const educationOptions = ["No Formal Education", "Primary", "Secondary", "College", "Vocational", "Postgraduate"];
 const disabilityCauseOptions = ["Birth", "Illness", "Accident", "Others"];
 const assistiveDeviceOptions = ["Cane", "Walker", "Wheelchair", "Hearing Aid", "None"];
-
+const annotationOptions = ["None", "Requires Assistance", "Pending"];
 // Editable form data
 const formData = ref({ ...props.userData });
 
@@ -476,7 +496,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 /* Footer Section */
 .form-footer {
-  margin-top: 1.25em; /* ~20px */
+  margin-top: 0.25em; /* ~20px */
   display: flex;
   justify-content: right;
   align-items: center;
@@ -485,14 +505,14 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 /* Page Indicator */
 .page-indicator {
-  margin-top: 12.9em;
+  margin-top: 4.1em;
   color: #707680;
   font-size: 0.875rem; /* ~14px */
 }
 
 /* Footer Arrow */
 .footer-arrow {
-  margin-top: 14.2em;
+  margin-top: 4.8em;
   width: 1em;  /* ~16px if base is 16px */
   height: 1em;
   cursor: pointer;
@@ -566,7 +586,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   color: lightgray;
   text-decoration: underline;
   cursor: pointer;
-  margin-top: 159px;
+  margin-top: 65px;
 }
 
 .save-btn {
@@ -579,7 +599,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   border-radius: 5px;
   cursor: pointer;
   transition: background-color 0.3s ease;
-  margin-top: 159px;
+  margin-top: 65px;
 }
 
 .save-btn:hover {

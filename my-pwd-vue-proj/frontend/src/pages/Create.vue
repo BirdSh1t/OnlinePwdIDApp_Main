@@ -1,14 +1,24 @@
 <template>
   <div class="create-page-container">
     <!-- Dashboard Header -->
-    <DashboardHeader title="ID Now Application Form" class="dashboard-header-card" />
+    <DashboardHeader 
+    title="ID Now Application Form" 
+    class="dashboard-header-card"
+    @new-document="newDocument"
+    />
 
     <!-- Create Card -->
     <div class="create-card">
       <!-- Search Bar -->
       <div class="search-bar">
         <img :src="getIconUrl('search_black.png')" alt="Search Icon" class="search-icon">
-        <input type="text" placeholder="Search here" class="search-input">
+        <input
+          type="text"
+          placeholder="Search here"
+          class="search-input"
+          v-model="searchQuery"
+          @keydown.enter="handleSearch"
+        />
       </div>
 
       <!-- Form -->
@@ -18,29 +28,72 @@
           <!-- Record Navigation Container -->
           <div class="record-navigation-container">
             <div class="record-navigation">
+              
+              <!-- Fast Rewind (First Record) -->
               <div class="fast-rewind-icon">
-                <img :src="getIconUrl('next_double_arrow_right.png')" alt="Fast Rewind" class="arrow-icon flip-horizontal">
+                <img
+                  :src="getIconUrl('next_double_arrow_right.png')"
+                  alt="Fast Rewind"
+                  class="arrow-icon flip-horizontal"
+                  @click="goToFirst"
+                  :class="{ 'disabled-icon': currentIndex <= 0 }"
+                />
               </div>
+
+              <!-- Previous Record -->
               <div class="previous-icon">
-                <img :src="getIconUrl('next_grey.png')" alt="Previous" class="arrow-icon flip-horizontal">
+                <img
+                  :src="getIconUrl('next_grey.png')"
+                  alt="Previous"
+                  class="arrow-icon flip-horizontal"
+                  @click="goToPrev"
+                  :class="{ 'disabled-icon': currentIndex <= 0 }"
+                />
               </div>
+
+              <!-- Record Counter -->
               <div class="record-card">
-                Record 104 of 8273
+                Record {{ currentIndex + 1 }} of {{ allRecords.length }}
               </div>
+
+              <!-- Next Record -->
               <div class="next-icon">
-                <img :src="getIconUrl('next_grey.png')" alt="Next" class="arrow-icon">
+                <img
+                  :src="getIconUrl('next_grey.png')"
+                  alt="Next"
+                  class="arrow-icon"
+                  @click="goToNext"
+                  :class="{ 'disabled-icon': currentIndex >= allRecords.length - 1 }"
+                />
               </div>
+
+              <!-- Fast Forward (Last Record) -->
               <div class="fast-forward-icon">
-                <img :src="getIconUrl('next_double_arrow_right.png')" alt="Fast Forward" class="arrow-icon">
+                <img
+                  :src="getIconUrl('next_double_arrow_right.png')"
+                  alt="Fast Forward"
+                  class="arrow-icon"
+                  @click="goToLast"
+                  :class="{ 'disabled-icon': currentIndex >= allRecords.length - 1 }"
+                />
               </div>
+              
             </div>
           </div>
 
           <!-- ID Status -->
           <div class="id-status-container">
             <label for="id-status" class="id-label">IDNow ID:</label>
-            <input type="checkbox" id="id-status" class="checkbox-input" v-model="isActive">
-            <label for="id-status" class="status-label">Invalid</label>
+            <input
+            type="checkbox"
+            id="id-status"
+            class="checkbox-input"
+            v-model="isActive"
+            :readonly="isNavigationMode"
+          />
+          <label for="id-status" class="status-label">
+            {{ isActive ? 'Valid' : 'Invalid' }}
+          </label>
           </div>
 
           <!-- Action Container for Big Box and Buttons -->
@@ -54,7 +107,7 @@
               <button type="button" class="btn upload-image-btn" @click="openFileExplorer">Upload Image</button>
               <input type="file" ref="fileInput" style="display: none;" @change="handleFileUpload" accept="image/*" />
               <!-- Save Button -->
-              <button type="submit" class="btn save-btn">Save</button>
+              <button type="button" class="btn save-btn" @click="submitForm">Save</button>
             </div>
           </div>
         </div>
@@ -65,75 +118,97 @@
           <div class="form-column column-a">
             <div class="form-group">
               <label for="id-number">ID No:</label>
-              <input type="text" id="id-number" class="form-control" v-model="idNumber">
+              <input type="text" id="id-number" class="form-control" v-model="pwd_id" :readonly="isNavigationMode">
             </div>
+
             <div class="form-group">
               <label for="name">Name:</label>
-              <input type="text" id="name" class="form-control" v-model="name">
+              <input type="text" id="name" class="form-control" v-model="name" :readonly="isNavigationMode">
             </div>
+
             <div class="form-group">
               <label for="type-of-disability">Type of Disability:</label>
               <multiselect
                 v-model="typeOfDisability"
                 :options="disabilityOptions"
-                class="custom-dropdown"
+                :disabled="isNavigationMode"
+                :class="{ 'non-interactive': isNavigationMode }"
+                id="type-of-disability"
               ></multiselect>
             </div>
+
             <div class="form-group">
               <label for="address">Address:</label>
-              <input type="text" id="address" class="form-control" v-model="address">
+              <input type="text" id="address" class="form-control" v-model="address" :readonly="isNavigationMode">
             </div>
+
             <div class="form-group">
               <label for="date-of-birth">Date of Birth:</label>
-              <input type="date" id="date-of-birth" class="form-control" v-model="dateOfBirth">
+              <input type="date" id="date-of-birth" class="form-control" v-model="dateOfBirth" :readonly="isNavigationMode">
             </div>
+
             <div class="form-group">
               <label for="date-issued">Date Issued:</label>
-              <input type="date" id="date-issued" class="form-control" v-model="dateIssued">
+              <input type="date" id="date-issued" class="form-control" v-model="dateIssued" :readonly="isNavigationMode">
             </div>
+
             <div class="form-group">
               <label for="sex">Sex:</label>
               <multiselect
                 v-model="sex"
                 :options="sexOptions"
+                :disabled="isNavigationMode"
                 class="custom-dropdown"
+                id="sex"
               ></multiselect>
             </div>
+
             <div class="form-group">
               <label for="blood-type">Blood Type:</label>
               <multiselect
                 v-model="bloodType"
                 :options="bloodTypeOptions"
+                :disabled="isNavigationMode"
                 class="custom-dropdown"
+                id="blood-type"
               ></multiselect>
             </div>
+
             <div class="form-group">
               <label for="parent-guardian">Parent/Guardian:</label>
-              <input type="text" id="parent-guardian" class="form-control" v-model="parentGuardian">
+              <input type="text" id="parent-guardian" class="form-control" v-model="parentGuardian" :readonly="isNavigationMode">
             </div>
+
             <div class="form-group">
               <label for="contact">Contact:</label>
-              <input type="text" id="contact" class="form-control" v-model="contact">
+              <input type="text" id="contact" class="form-control" v-model="contact" :readonly="isNavigationMode">
             </div>
+
             <div class="form-group">
               <label for="remarks">Remarks:</label>
               <multiselect
                 v-model="remarks"
                 :options="remarksOptions"
+                :disabled="isNavigationMode"
                 class="custom-dropdown"
+                id="remarks"
               ></multiselect>
             </div>
+
             <div class="form-group">
               <label for="annotation">Annotation:</label>
               <multiselect
                 v-model="annotation"
                 :options="annotationOptions"
+                :disabled="isNavigationMode"
                 class="custom-dropdown"
+                id="annotation"
               ></multiselect>
             </div>
+
             <div class="form-group">
               <label for="philhealth-no">Philhealth No:</label>
-              <input type="text" id="philhealth-no" class="form-control" v-model="philhealthNo">
+              <input type="text" id="philhealth-no" class="form-control" v-model="philhealthNo" :readonly="isNavigationMode">
             </div>
           </div>
 
@@ -141,46 +216,50 @@
           <div class="form-column column-b">
             <div class="form-group">
               <label for="transfer-from">Transfer From:</label>
-              <input type="text" id="transfer-from" class="form-control" v-model="transferFrom">
+              <input type="text" id="transfer-from" class="form-control" v-model="transferFrom" :readonly="isNavigationMode">
             </div>
             <div class="form-group">
               <label for="care-of">Care of:</label>
-              <input type="text" id="care-of" class="form-control" v-model="careOf">
+              <input type="text" id="care-of" class="form-control" v-model="careOf" :readonly="isNavigationMode">
             </div>
             <div class="form-group">
               <label for="first-name">Name:</label>
-              <input type="text" id="first-name" class="form-control" v-model="firstName">
+              <input type="text" id="first-name" class="form-control" v-model="firstName" :readonly="isNavigationMode">
             </div>
             <div class="form-group">
               <label for="middle-name">Middle Name:</label>
-              <input type="text" id="middle-name" class="form-control" v-model="middleName">
+              <input type="text" id="middle-name" class="form-control" v-model="middleName" :readonly="isNavigationMode">
             </div>
             <div class="form-group">
               <label for="surname">Surname:</label>
-              <input type="text" id="surname" class="form-control" v-model="surname">
+              <input type="text" id="surname" class="form-control" v-model="surname" :readonly="isNavigationMode">
             </div>
             <div class="form-group">
               <label for="barangay">Barangay:</label>
-              <input type="text" id="barangay" class="form-control" v-model="barangay">
+              <input type="text" id="barangay" class="form-control" v-model="barangay" :readonly="isNavigationMode">
             </div>
             <div class="form-group">
               <label for="member-since">Member Since:</label>
-              <input type="date" id="member-since" class="form-control" v-model="memberSince">
+              <input type="date" id="member-since" class="form-control" v-model="memberSince" :readonly="isNavigationMode">
             </div>
             <div class="form-group">
               <label for="education">Education:</label>
               <multiselect
                 v-model="education"
                 :options="educationOptions"
+                :disabled="isNavigationMode"
                 class="custom-dropdown"
-              ></multiselect>
+                id="education"
+              />
             </div>
             <div class="form-group">
               <label for="disability-cause">Disability Cause:</label>
               <multiselect
                 v-model="disabilityCause"
                 :options="disabilityCauseOptions"
+                :disabled="isNavigationMode"
                 class="custom-dropdown"
+                id="disability-cause"
               ></multiselect>
             </div>
             <div class="form-group">
@@ -188,44 +267,76 @@
               <multiselect
                 v-model="assistiveDevice"
                 :options="assistiveDeviceOptions"
+                :disabled="isNavigationMode"
                 class="custom-dropdown"
+                id="assistive-device"
               ></multiselect>
             </div>
             <div class="form-group">
               <label for="occupation">Occupation:</label>
-              <input type="text" id="occupation" class="form-control" v-model="occupation">
+              <input type="text" id="occupation" class="form-control" v-model="occupation" :readonly="isNavigationMode">
             </div>
           </div>
         </div>
       </form>
 
       <!-- Trash Icon -->
-      <img :src="getIconUrl('trash_grey.png')" alt="Trash Icon" class="trash-icon">
+      <img
+      :src="getIconUrl('trash_grey.png')"
+      alt="Trash Icon"
+      class="trash-icon"
+      @click="onTrashClick"
+      :class="{ disabled: !isTrashEnabled }"
+      />
+
+      <DeleteModal
+        v-model="showDeleteModal"
+        :isDelete="isDeleteMode"
+        @delete-confirmed="deleteCurrentRecord"
+      />
     </div>
   </div>
 </template>
 
+
+
 <script>
+import axios from "axios";
 import DashboardHeader from '@/components/DashboardHeader.vue';
 import Multiselect from "vue-multiselect";
 import "vue-multiselect/dist/vue-multiselect.css"; // Import default styles
+import Datepicker from "@vuepic/vue-datepicker";
+import "@vuepic/vue-datepicker/dist/main.css";
+import { useToast } from 'vue-toastification';
+import DeleteModal from '@/components/modals/DeleteModal.vue'; // Adjust the path if it's in a different folder
+
 
 export default {
-  components: { DashboardHeader, Multiselect },
+  setup() {
+    const toast = useToast();
+
+    const notify = () => {
+      toast.success('Operation successful!');
+    };
+
+    return { notify };
+  },
+  components: { DashboardHeader, Multiselect, Datepicker, DeleteModal },
   data() {
     return {
-      idNumber: '',
+      // Form field models:
+      pwd_id: '',
       name: '',
-      typeOfDisability: null,
+      typeOfDisability: '',
       address: '',
       dateOfBirth: '',
       dateIssued: '',
-      sex: null,
-      bloodType: null,
+      sex: '',
+      bloodType: '',
       parentGuardian: '',
       contact: '',
-      remarks: null,
-      annotation: null,
+      remarks: '',
+      annotation: '',
       philhealthNo: '',
       transferFrom: '',
       careOf: '',
@@ -234,12 +345,18 @@ export default {
       surname: '',
       barangay: '',
       memberSince: '',
-      education: null,
-      disabilityCause: null,
-      assistiveDevice: null,
+      education: '',
+      disabilityCause: '',
+      assistiveDevice: '',
       occupation: '',
-      isActive: false, // For the checkbox
-      // Options for dropdowns
+      isActive: false, 
+      searchQuery: '', // For the search bar
+      // For the checkbox
+      showDeleteModal: false,
+      isDeleteMode: false, // 👈 Used to conditionally enable the icon
+      showPwdIdField: true,
+      
+      // Dropdown options:
       disabilityOptions: ['Physical Disability', 'Visual Impairment', 'Hearing Impairment', 'Other'],
       sexOptions: ['Male', 'Female'],
       bloodTypeOptions: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'],
@@ -248,9 +365,114 @@ export default {
       educationOptions: ['Elementary', 'High School', 'College', 'Postgraduate'],
       disabilityCauseOptions: ['Accident', 'Genetic', 'Disease', 'Other'],
       assistiveDeviceOptions: ['Wheelchair', 'Hearing Aid', 'Prosthetic', 'Other'],
+
+      currentIndex: 0,
+      allRecords: [],
+      isNewRecord: false,
     };
   },
   methods: {
+    onTrashClick() {
+    if (this.isTrashEnabled) {
+      const fields = [
+        this.pwd_id, this.name, this.typeOfDisability, this.address, this.dateOfBirth,
+        this.dateIssued, this.sex, this.bloodType, this.transferFrom, this.careOf,
+        this.firstName, this.middleName, this.surname, this.barangay, this.memberSince,
+        this.education, this.disabilityCause, this.parentGuardian, this.contact,
+        this.remarks, this.philhealthNo, this.assistiveDevice, this.occupation
+          // skip this.annotation if it's not editable
+        ];
+
+        this.isDeleteMode = fields.every(field => !field || field === "");
+        this.showDeleteModal = true;
+      }
+    },
+    onNewDocumentCreated() {
+      this.isTrashEnabled = true; // Enable trash when new document is created
+      this.isNavigationMode = false; // 🧭 Exit navigation mode
+    },
+    onRecordSaved() {
+      this.isTrashEnabled = false; // Disable trash when existing record is saved
+    },
+    async deleteCurrentRecord() {
+    const toast = useToast();
+
+      if (this.isDeleteMode) {
+        if (this.isNewRecord) {
+          // New, unsaved record — just clear it
+          this.clearForm();
+          this.isNewRecord = false;
+          toast.success("Form cleared.");
+        } else {
+          // Existing record — delete from DB
+          if (!this.pwd_id) {
+            toast.error("Cannot delete. No ID found.");
+            return;
+          }
+
+          try {
+            await axios.delete(`http://localhost:4000/api/users/${this.pwd_id}`);
+            toast.success("Record deleted.");
+            this.clearForm();
+            this.pwd_id = '';
+            this.isNewRecord = false;
+            this.isTrashEnabled = false;
+          } catch (err) {
+            toast.error("Failed to delete record.");
+          }
+        }
+      } else {
+        this.clearForm();
+        toast.success("Form cleared.");
+      }
+    },
+    async loadRecordByIndex(index) {
+    try {
+        const res = await fetch(`http://localhost:4000/api/form-record?index=${index}`);
+        const data = await res.json();
+
+        if (data.record) {
+          this.fillFormFromRecord(data.record);
+          this.currentIndex = data.index;
+          this.allRecords = Array(data.total).fill(null); // Keep for count reference
+        }
+      } catch (err) {
+        console.error("Failed to load record by index:", err);
+      }
+    },
+    async handleSearch() {
+    const toast = useToast();
+    const query = this.searchQuery.trim();
+
+    if (!query) {
+      toast.warning("Please enter a PWD ID.");
+      return;
+      }
+
+      try {
+        const response = await fetch(`http://localhost:4000/api/search?page=form&pwd_id=${query}`);
+        const result = await response.json();
+
+        if (!response.ok && result.message) {
+          throw new Error(result.message);
+        }
+
+        if (result.record) {
+          this.fillFormFromRecord(result.record);
+
+          // Sync the navigator
+          this.currentIndex = result.index;
+          this.allRecords = Array(result.total).fill(null); // Dummy array just for navigator count
+
+          toast.success("Record found!");
+        } else {
+          toast.warning("No record found.");
+        }
+      } catch (err) {
+        toast.error(err.message || "Search error.");
+        console.error("Search error:", err);
+      }
+    },
     getIconUrl(fileName) {
       return new URL(`/src/assets/icons/${fileName}`, import.meta.url).href;
     },
@@ -261,10 +483,277 @@ export default {
       const file = event.target.files[0];
       if (file) {
         console.log("Selected file:", file);
-        // You can handle the file upload logic here
+        // File upload logic goes here
       }
+    },
+    // Call this function when the Save button is pressed.
+    submitForm() {
+      const toast = useToast();
+
+      this.isTrashEnabled = false; // Disable trash when existing record is saved
+      // Create a payload object with all form fields.
+      const payload = {
+        pwd_id: this.pwd_id, 
+        full_name: this.name,
+        types_of_disability: this.typeOfDisability,
+        address: this.address,
+        birthdate: this.dateOfBirth,
+        date_issued: this.dateIssued,
+        sex: this.sex,
+        blood_type: this.bloodType,
+        transfer_from: this.transferFrom,
+        care_of: this.careOf,
+        first_name: this.firstName,
+        middle_name: this.middleName,
+        surname: this.surname,
+        barangay: this.barangay,
+        member_since: this.memberSince,
+        education: this.education,
+        disability_cause: this.disabilityCause,
+        status_: this.isActive ? "valid" : "invalid",
+        parent_guardian: this.parentGuardian,
+        contact_number: this.contact,
+        remarks: this.remarks,
+        philhealth_no: this.philhealthNo,
+        assistive_device: this.assistiveDevice,
+        occupation: this.occupation
+
+      };
+        if (
+          !this.pwd_id ||
+          !this.name ||
+          !this.sex ||
+          !this.typeOfDisability ||
+          !this.dateOfBirth ||
+          !this.dateIssued ||
+          !this.bloodType ||
+          !this.transferFrom ||
+          !this.careOf ||
+          !this.firstName ||
+          !this.middleName ||
+          !this.surname ||
+          !this.address ||
+          !this.barangay ||
+          !this.memberSince ||
+          !this.education ||
+          !this.disabilityCause ||
+          !this.isActive ||
+          !this.parentGuardian ||
+          !this.contact ||
+          !this.remarks ||
+          !this.philhealthNo ||
+          !this.assistiveDevice ||
+          !this.occupation  
+          // add more required fields here
+        ) {
+          toast.error("Please fill in all required fields.");
+          return;
+        }
+      axios
+      .post("http://localhost:4000/api/users", payload)
+      .then(async (response) => {
+        console.log(`User ${response.data.pwd_id} added as record #${response.data.user_number}`);
+        
+        this.clearForm(); // ✅ Clear form first
+        await this.fetchAllRecords(); // ✅ Wait for records to load
+
+        this.currentIndex = this.allRecords.length - 1; // ✅ Jump to newest
+        this.fillFormFromRecord(this.allRecords[this.currentIndex]);
+
+        toast.success("Form submitted successfully!");
+        })
+        .catch(error => {
+          console.error("Error inserting user:", error);
+          toast.error("Error saving form.");
+        });
+    },
+    // Clear all the form fields
+    clearForm() {
+      //this.pwd_id = '';
+      this.name = '';
+      this.typeOfDisability = '';
+      this.address = '';
+      this.dateOfBirth = '';
+      this.dateIssued = '';
+      this.sex = '';
+      this.bloodType = '';
+      this.transferFrom = '';
+      this.careOf = '';
+      this.firstName = '';
+      this.middleName = '';
+      this.surname = '';
+      this.barangay = '';
+      this.memberSince = '';
+      this.education = '';
+      this.disabilityCause = '';
+      this.isActive = false;
+      this.parentGuardian = '';
+      this.contact = '';
+      this.remarks = '';
+      this.philhealthNo = '';
+      this.assistiveDevice = '';
+      this.occupation = '';
+      //this.annotation = '';
+
+      this.isTrashEnabled = true;
+
+      this.showPwdIdField = false;
+    },
+    async newDocument() {
+      const toast = useToast();
+
+      const fields = [
+        this.pwd_id,
+        this.name,
+        this.typeOfDisability,
+        this.address,
+        this.dateOfBirth,
+        this.dateIssued,
+        this.sex,
+        this.bloodType,
+        this.transferFrom,
+        this.careOf,
+        this.firstName,
+        this.middleName,
+        this.surname,
+        this.barangay,
+        this.memberSince,
+        this.education,
+        this.disabilityCause,
+        this.isActive = false,
+        this.parentGuardian,
+        this.contact,
+        this.remarks,
+        this.philhealthNo,
+        this.assistiveDevice,
+      ];
+
+      const isAnyEmpty = fields.some(field => field === null || field === '');
+      if (isAnyEmpty) {
+        toast.warning("Please fill in all fields before creating a new document.");
+        return;
+      }
+
+      // ✅ Clear previous data
+      this.clearForm();
+      toast.success("New Form created successfully!");
+      try {
+        // ✅ Fetch next record number (num_users)
+        const idResponse = await axios.get('http://localhost:4000/api/next-id');
+        this.currentIndex = idResponse.data.nextId - 1; // For record navigator
+
+        // ✅ Fetch new pwd_id
+        const pwdResponse = await axios.get('http://localhost:4000/api/generate-pwd-id');
+        this.pwd_id = pwdResponse.data.pwd_id;
+
+        this.isNewRecord = true; // mark it as new
+        this.showPwdIdField = true;
+        // ✅ Mark as new document
+        this.onNewDocumentCreated(); // <-- 🔥 Enable trash icon and disable navigation mode
+      } catch (error) {
+        console.error("Error preparing new document:", error);
+        toast.error("Failed to initialize new document.");
+      }
+    },
+    async fetchAllRecords() {
+    try {
+    const response = await axios.get("http://localhost:4000/api/users");
+    // Sort by num_users ASC before assigning to allRecords
+    this.allRecords = response.data.sort((a, b) => a.num_users - b.num_users);
+
+      if (this.allRecords.length > 0) {
+        this.currentIndex = 0;
+        this.fillFormFromRecord(this.allRecords[0]);
+      }
+    } catch (error) {
+      console.error("Failed to fetch users:", error);
     }
-  }
+  },
+  goToNext() {
+    if (this.currentIndex < this.allRecords.length - 1) {
+      this.loadRecordByIndex(this.currentIndex + 1);
+    }
+  },
+
+  goToPrev() {
+    if (this.currentIndex > 0) {
+      this.loadRecordByIndex(this.currentIndex - 1);
+    }
+  },
+
+  goToFirst() {
+    this.loadRecordByIndex(0);
+  },
+
+  goToLast() {
+    this.loadRecordByIndex(this.allRecords.length - 1);
+  },
+  populateForm(record) {
+    this.isNavigationMode = true;
+    this.pwd_id = record.pwd_id || '';
+    this.name = record.full_name || '';
+    this.typeOfDisability = record.types_of_disability || '';
+    this.address = record.address || '';
+    this.dateOfBirth = record.birthdate || '';
+    this.dateIssued = record.date_issued || '';
+    this.sex = record.sex || '';
+    this.bloodType = record.blood_type || '';
+    this.transferFrom = record.transfer_from || '';
+    this.careOf = record.care_of || '';
+    this.firstName = record.first_name || '';
+    this.middleName = record.middle_name || '';
+    this.surname = record.surname || '';
+    this.barangay = record.barangay || '';
+    this.memberSince = record.member_since || '';
+    this.education = record.education || '';
+    this.disabilityCause = record.disability_cause || '';
+    this.isActive = (record.status || record.status_) === 'valid';
+    this.parentGuardian = record.parent_guardian || '';
+    this.contact = record.contact_number || '';
+    this.remarks = record.remarks || '';
+    this.philhealthNo = record.philhealth_no || '';
+    this.assistiveDevice = record.assistive_device || '';
+    this.occupation = record.occupation || '';
+  },
+  formatDate(dateStr) {
+    if (!dateStr) return '';
+    return new Date(dateStr).toISOString().split('T')[0];
+    },
+    fillFormFromRecord(record) {
+      console.log("FILLING FORM FROM RECORD:", record); 
+      console.log("RECORD PROPERTIES:", Object.keys(record)); 
+
+      this.isNavigationMode = true;
+
+      this.pwd_id = record.pwd_id;
+      this.name = record.full_name;
+      this.typeOfDisability = record.types_of_disability;
+      this.address = record.address;
+      this.dateOfBirth = this.formatDate(record.birthdate);
+      this.dateIssued = this.formatDate(record.date_issued);
+      this.sex = record.sex;
+      this.bloodType = record.blood_type;
+      this.transferFrom = record.transfer_from;
+      this.careOf = record.care_of;
+      this.firstName = record.first_name;
+      this.middleName = record.middle_name;
+      this.surname = record.surname;
+      this.barangay = record.barangay;
+      this.memberSince = this.formatDate(record.member_since);
+      this.education = record.education;
+      this.disabilityCause = record.disability_cause;
+      this.isActive = record.status === 'valid';
+      this.parentGuardian = record.parent_guardian;
+      this.contact = record.contact_number;
+      this.remarks = record.remarks;
+      this.philhealthNo = record.philhealth_no;
+      this.assistiveDevice = record.assistive_device;
+      this.occupation = record.occupation;
+    },
+  },
+  mounted() {
+  this.fetchAllRecords();
+  },
 };
 </script>
 
@@ -308,7 +797,7 @@ export default {
 /* Search Bar */
 .search-bar {
   position: relative;
-  width: 300px; /* Adjusted width */
+  width: 255px; /* Adjusted width */
   margin-bottom: 20px;
   display: flex;
   align-items: center;
@@ -456,18 +945,25 @@ export default {
 
 /* Buttons */
 .upload-image-btn, .save-btn {
-  flex: 1; /* Allow buttons to grow and shrink */
-  background-color: rgba(0, 0, 0, 0.5); /* 50% transparency */
+  flex: 1; 
+  background-color: rgba(0, 0, 0, 0.5); 
   color: white;
   border: none;
   padding: 15px;
   border-radius: 5px;
   cursor: pointer;
   margin-bottom: 10px;
-  transition: all 0.3s ease-in-out; /* Smooth transition for size changes */
+  transition: all 0.3s ease-in-out; 
   text-align: center;
   font-size: 16px;
 }
+
+.upload-image-btn:hover, .save-btn:hover {
+  background-color: rgba(141, 138, 138, 0.7); 
+  transform: scale(1.05); 
+  box-shadow: 0 0 10px rgba(146, 146, 146, 0.2); 
+}
+
 
 .save-btn {
   background-color: #d9d9d9;
@@ -517,6 +1013,13 @@ export default {
   width: 107%;
   margin-top: 5px;
   transition: all 0.3s ease-in-out; /* Smooth transition for size changes */
+}
+
+.non-interactive {
+  pointer-events: none;
+  font-size: 13px;
+  width: 107%;
+  margin-top: 5px;
 }
 
 /* Trash Icon */
@@ -570,22 +1073,37 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   }
 }
 
-@media (max-width: 768px) {
+.disabled-icon {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.my-custom-dialog .v-card {
+  background-color: white;
+  font-family: 'Cooper Hewitt';
+  border-radius: 8px;
+}
+
+</style>
+
+
+
+
+/* @media (max-width: 768px) {
   .create-card {
-    padding-left: 20px; /* Further adjust padding for very small screens */
+    padding-left: 20px; 
   }
 
   .form-columns {
-    padding-left: 50px; /* Further adjust padding for very small screens */
+    padding-left: 50px; 
   }
 
   .form-column {
-    width: 35%; /* Further reduce width for very small screens */
+    width: 35%; 
   }
 
   .form-control, .custom-dropdown, .big-box, .upload-image-btn, .save-btn {
-    font-size: 11px; /* Further reduce font size for very small screens */
-    padding: 5px; /* Further reduce padding for very small screens */
+    font-size: 11px; 
+    padding: 5px; 
   }
-}
-</style>
+} */

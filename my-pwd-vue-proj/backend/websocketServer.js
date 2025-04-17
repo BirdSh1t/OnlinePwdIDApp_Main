@@ -11,8 +11,8 @@ export function startWebSocketServer(server, pool) {
 
     try {
       const [results] = await pool.promise().query(`
-        SELECT number AS user_number, full_name, sex, pwd_id, status_ AS status, date_issued 
-        FROM users ORDER BY number ASC
+        SELECT num_users AS user_number, full_name, sex, pwd_id, status_ AS status, date_issued 
+        FROM users ORDER BY num_users ASC
       `);
       ws.send(JSON.stringify(results));
     } catch (error) {

@@ -24,7 +24,13 @@
     <!-- Else show icons if on the Create page -->
     <div v-else class="icons-container">
       <img :src="getIconUrl('printer_grey.png')" alt="Printer" class="icon" />
-      <img :src="getIconUrl('new_document_grey.png')" alt="New Document" class="icon" />
+      <!-- Update this -->
+      <img
+        :src="getIconUrl('new_document_grey.png')"
+        alt="New Document"
+        class="icon"
+        @click="$emit('new-document')"
+      />
     </div>
   </div>
 </template>
@@ -47,6 +53,9 @@ export default {
     },
     getIconUrl(fileName) {
       return new URL(`/src/assets/icons/${fileName}`, import.meta.url).href;
+    },
+    async triggerNewDocument() {
+    this.$emit("new-document-clicked"); // Notify AdminLayout or Create page
     }
   }
 };

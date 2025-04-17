@@ -22,10 +22,11 @@
 </template>
 
 <script>
+import axios from 'axios';
 import NavBar from '@/components/NavBar.vue';
 import AppDetailsForm_pg1 from '@/pages/AppDetailsForm_pg1.vue';
 import AppDetailsForm_pg2 from '@/pages/AppDetailsForm_pg2.vue';
-import axios from "axios";
+import AppDetailsForm_pg3 from '@/pages/AppDetailsForm_pg3.vue';
 
 export default {
   name: "AdminLayout",
@@ -35,41 +36,44 @@ export default {
       showAppDetails: false,
       formPage: 1,
       currentPage: 1,
-      totalPages: 2,
-      selectedUser: {} // Will store detailed user data fetched from the backend
+      totalPages: 3, // update to 3 pages
+      selectedUser: {}
     };
   },
   computed: {
     currentFormComponent() {
-      // Returns the component for the current form page (pg1 or pg2)
-      return this.formPage === 1 ? AppDetailsForm_pg1 : AppDetailsForm_pg2;
+      if (this.formPage === 1) return AppDetailsForm_pg1;
+      if (this.formPage === 2) return AppDetailsForm_pg2;
+      if (this.formPage === 3) return AppDetailsForm_pg3;
+      return AppDetailsForm_pg1; // fallback
     },
   },
   methods: {
-  fetchUserDetails(userData) {
-    this.selectedUser = userData;
-    this.showAppDetails = true;
-    this.formPage = 1;
-    this.currentPage = 1;
-  },
-  closeForm() {
-    this.showAppDetails = false;
-  },
-  goToPreviousPage() {
-    if (this.formPage > 1) {
-      this.formPage--;
-      this.currentPage--;
-    }
-  },
-  goToNextPage() {
-    if (this.formPage < this.totalPages) {
-      this.formPage++;
-      this.currentPage++;
+    fetchUserDetails(userData) {
+      this.selectedUser = userData;
+      this.showAppDetails = true;
+      this.formPage = 1;
+      this.currentPage = 1;
+    },
+    closeForm() {
+      this.showAppDetails = false;
+    },
+    goToPreviousPage() {
+      if (this.formPage > 1) {
+        this.formPage--;
+        this.currentPage--;
+      }
+    },
+    goToNextPage() {
+      if (this.formPage < this.totalPages) {
+        this.formPage++;
+        this.currentPage++;
       }
     },
   },
 };
 </script>
+
 
 <style scoped>
 .admin-layout {

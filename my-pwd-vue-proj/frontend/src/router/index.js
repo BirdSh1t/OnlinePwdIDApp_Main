@@ -32,7 +32,7 @@ const routes = [
       { path: 'database', name: 'Database', component: Database }, 
       { path: 'create', name: 'Create', component: Create },
       { path: 'calendar', name: 'Calendar', component: Calendar },
-      { path: 'calendar', name: 'Calendar', component: Calendar }
+      { path: 'archive', name: 'Archive', component: Archive }
     ],
     meta: { requiresAuth: true }
   },
