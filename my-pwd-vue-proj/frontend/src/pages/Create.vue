@@ -308,7 +308,7 @@ import "vue-multiselect/dist/vue-multiselect.css"; // Import default styles
 import Datepicker from "@vuepic/vue-datepicker";
 import "@vuepic/vue-datepicker/dist/main.css";
 import { useToast } from 'vue-toastification';
-import DeleteModal from '@/components/modals/DeleteModal.vue'; // Adjust the path if it's in a different folder
+import DeleteModal from '@/components/modals/DeleteModal.vue'; 
 
 
 export default {
@@ -752,8 +752,18 @@ export default {
     },
   },
   mounted() {
-  this.fetchAllRecords();
+  this.socket = new WebSocket("ws://localhost:4000");
+
+  this.socket.onmessage = (event) => {
+    const message = JSON.parse(event.data);
+    if (message.event === "update-active") {
+      this.allRecords = message.data; // optional if you display records
+      }
+    };
   },
+  beforeUnmount() {
+    if (this.socket) this.socket.close();
+  }
 };
 </script>
 

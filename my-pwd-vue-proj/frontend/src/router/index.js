@@ -1,12 +1,13 @@
 import { createRouter, createWebHistory } from 'vue-router';
 
 // 🔹 Import Pages
-import Login from '@/pages/login.vue';
+//import login from '@/pages/login.vue';
 import Dashboard from '@/pages/Dashboard.vue';
 import Database from '@/pages/Database.vue';
 import Create from '@/pages/Create.vue';
 import Calendar from '@/pages/Calendar.vue';
 import Archive from '@/pages/Archive.vue';
+import LandingPage from '@/pages/LandingPage.vue';
 
 // 🔹 Import Layouts
 import AdminLayout from '@/layouts/AdminLayout.vue';
@@ -19,8 +20,8 @@ const routes = [
   // ✅ Login Route (No Layout)
   { 
     path: '/', 
-    name: 'Login', 
-    component: Login 
+    name: 'LandingPage', 
+    component: LandingPage
   },
 
 

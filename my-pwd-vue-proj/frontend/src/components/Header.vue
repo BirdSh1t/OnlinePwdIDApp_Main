@@ -37,10 +37,6 @@ export default {
   beforeUnmount() {
     window.removeEventListener('scroll', this.handleScroll);
   },
-  handleScroll() {
-  console.log('scrollY:', window.scrollY);
-  this.isScrolled = window.scrollY > 0;
-},
   methods: {
   handleScroll() {
     this.isScrolled = window.scrollY > 0;
@@ -58,7 +54,7 @@ export default {
   top: 0;
   left: 0;
   right: 0;
-  background-color: #57c031;
+  background-color: #57c031; /* Solid green when NOT scrolled */
   z-index: 1000;
   display: flex;
   align-items: center;
@@ -70,30 +66,44 @@ export default {
 
 /* ✨ Scrolled Header Styles */
 .header.scrolled {
-  background-color: rgba(255, 255, 255, 0.85); /* more visible */
-  backdrop-filter: blur(4px); /* optional: glass effect */
+  background-color: rgba(255, 255, 255, 0.7); 
+  backdrop-filter: blur(4px); /* optional glass effect */
 }
 
-
-::v-deep(.header.scrolled) .header-title,
-::v-deep(.header.scrolled) .nav-item {
+/* ✅ Header Title (Scrolled) */
+.header.scrolled .header-title {
   color: #57c031;
 }
 
-::v-deep(.header.scrolled) .nav-item:hover {
+/* ✅ Nav Link Base Style */
+.nav-item {
+  color: darkgreen;
+  font-family: 'montserrat', sans-serif;
+  font-weight: 700;
+  text-decoration: none;
+  transition: color 0.3s, background-color 0.3s;
+  padding-right: 50px;
+}
+
+/* ✅ Nav Link Hover (Both States) */
+.nav-item:hover {
+  color: #efe3c2;
+}
+
+/* ✅ Nav Link in Scrolled Header */
+.header.scrolled .nav-item {
   color: darkgreen;
 }
 
-/* ✨ Change hover color in scrolled state */
 .header.scrolled .nav-item:hover {
-  color: darkgreen;
+  color: #57c031;
 }
 
 /* ✅ Left Section: PWD Icon & Title */
 .header-left {
   display: flex;
   align-items: center;
-  gap: 20px; /* Provides spacing between icon & text */
+  gap: 20px;
 }
 
 .header-icon {
@@ -102,7 +112,7 @@ export default {
   margin-left: 40px;
 }
 
-/* Original Title Style */
+/* ✅ Header Title */
 .header-title {
   color: #efe3c2;
   font-family: 'montserrat', sans-serif;
@@ -111,7 +121,7 @@ export default {
   transition: color 0.3s;
 }
 
-/* ✅ Right Section: Search Bar & Nav Links */
+/* ✅ Right Section */
 .header-right {
   display: flex;
   align-items: center;
@@ -128,14 +138,14 @@ export default {
   height: 20px;
   background-color: white;
   position: relative;
-  margin-left: 0px; /* Space between search bar and nav links */
-  margin-right: 40px; /* Space between search bar and nav links */
+  margin-left: 0px;
+  margin-right: 40px;
 }
 
 .search-icon {
   width: 20px;
   height: 20px;
-  padding-left: 7px; /* Adds space between icon & input field */
+  padding-left: 7px;
 }
 
 .search-input {
@@ -150,23 +160,9 @@ export default {
   flex-grow: 1;
 }
 
-/* ✅ Navigation Links */
 .nav-links {
   display: flex;
   font-size: 20px;
 }
-
-.nav-item {
-  color: #083f05;
-  font-family: 'montserrat', sans-serif;
-  font-weight: 700;
-  text-decoration: none;
-  transition: color 0.3s, background-color 0.3s;
-  padding-right: 50px;
-}
-
-.nav-item:hover {
-  color: #efe3c2;
-}
-
 </style>
+

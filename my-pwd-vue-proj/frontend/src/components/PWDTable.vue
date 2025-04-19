@@ -8,7 +8,7 @@
         <thead>
           <tr>
             <th>Full Name</th>
-            <th>Address</th>
+            <th>PWD ID</th>
             <th>Sex</th>
             <th>Date Issued</th>
           </tr>
@@ -22,19 +22,20 @@
           <!-- Otherwise display the rows -->
           <tr v-else v-for="(user, index) in data" :key="user.pwd_id">
             <td>{{ user.full_name }}</td>
-            <td>{{ user.address }}</td>
+            <td>{{ user.pwd_id }}</td>
             <td>{{ user.sex }}</td>
             <td>{{ formatDate(user.date_issued) }}</td>
           </tr>
         </tbody>
       </table>
+      <!-- <pre>{{ data[0] }}</pre> -->
     </div>
   </div>
 </template>
 
 <script>
 export default {
-  name: "PWDTable", // ✅ match the filename
+  name: "PWDTable",
   props: {
     data: {
       type: Array,
@@ -47,10 +48,14 @@ export default {
       return new Date(dateString).toLocaleDateString(undefined, options);
     }
   },
-  mounted() {
-    console.log("Filtered data received in PWDTable:", this.data); // ✅ correct reference to the prop
+  watch: {
+    data(newData) {
+      console.log("Updated data received in PWDTable:", newData);
+    }
   },
-  
+  mounted() {
+    console.log("Mounted with data:", this.data);
+  }
 };
 </script>
 
@@ -124,7 +129,7 @@ export default {
 
   /* Adjust column widths manually (Optional) */
 th:nth-child(1), td:nth-child(1) { width: 30%; } /* Name Column */
-th:nth-child(2), td:nth-child(2) { width: 40%; } /* Email Column */
+th:nth-child(2), td:nth-child(2) { width: 20%; } /* Email Column */
 th:nth-child(3), td:nth-child(3) { width: 12%; } /* Age Column */
 th:nth-child(4), td:nth-child(4) { width: 5%; } /* Gender Column */
 

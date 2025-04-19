@@ -1,15 +1,15 @@
 <template>
     <div class="pwd-layout">
-      <Header class="NavBar" />
       <router-view /> <!-- ✅ Load PWD pages inside -->
+      <Footer class="Footer"/> 
     </div>
   </template>
   
   <script>
   import Header from '@/components/Header.vue';
-  
+  import Footer from '@/components/Footer.vue';
   export default {
-    components: { Header }
+    components: { Header, Footer }
   };
   </script>
   
@@ -21,12 +21,18 @@
     top: 0;
     left: 0;
     right: 0;
-    z-index: 1000; /* Ensure it stays above other content */
+    z-index: 1; /* Ensure it stays above other content */
   }
 
+  .Footer {
+  margin-top: auto;       /* Pushes footer to bottom */
+  width: 100%;
+  padding: 1rem;
+  z-index: 1;
+}
   .pwd-layout {
     display: flex;
-    /* overflow-y: auto; */
+    overflow: hidden;
     flex-direction: column;
   }
   </style>

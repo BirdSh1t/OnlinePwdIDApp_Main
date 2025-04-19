@@ -372,6 +372,7 @@ function saveChanges() {
     ...formData.value,
     birthdate: formatDateToMySQL(formData.value.birthdate),
     date_issued: formatDateToMySQL(formData.value.date_issued)
+    
   };
 
   axios
@@ -379,11 +380,15 @@ function saveChanges() {
     .then(response => {
       console.log("Updated user data:", response.data);
       isEditMode.value = false;
-      emit("close"); // Optional: close the form after saving
+
+      //Need ata
+      emit("updated", response.data); // ✅ Emit to parent
+      emit('close');    
     })
     .catch(error => {
       console.error("Error updating user:", error);
     });
+    
 }
 </script>
 

@@ -19,26 +19,133 @@ router.get("/users/pwd-list", async (req, res) => {
 // Display data on report page
 router.get("/users", async (req, res) => {
   try {
-    const query = `
+    const { archived } = req.query;
+    let query = `
       SELECT 
-      num_users AS user_number, full_name, address, sex, 
-      pwd_id, status_ AS status, date_issued, 
-      types_of_disability, birthdate, blood_type, transfer_from, care_of, 
-      first_name, middle_name, surname, barangay, member_since,
-      education, disability_cause, parent_guardian, contact_number,
-      remarks, philhealth_no, assistive_device, occupation, annotation,  1x1_img,
-      votersreg_img, birthcert_img, brgycert_img, govissue_img_1, govissue_img_2 
+        num_users AS user_number, full_name, address, sex, 
+        pwd_id, status_ AS status, date_issued, 
+        types_of_disability, birthdate, blood_type, transfer_from, care_of, 
+        first_name, middle_name, surname, barangay, member_since,
+        education, disability_cause, parent_guardian, contact_number,
+        remarks, philhealth_no, assistive_device, occupation, annotation,
+        1x1_img, votersreg_img, birthcert_img, brgycert_img, 
+        govissue_img_1, govissue_img_2 
       FROM users
-      ORDER BY num_users ASC
-
     `;
-    const [results] = await pool.promise().query(query);
+
+    const queryParams = [];
+
+    // Only apply filter if archived param is provided
+    if (archived !== undefined) {
+      query += " WHERE is_archived = ?";
+      queryParams.push(archived);
+    }
+
+    query += " ORDER BY num_users ASC";
+
+    const [results] = await pool.promise().query(query, queryParams);
     res.json(results);
   } catch (error) {
     console.error("Error fetching users:", error);
     res.status(500).json({ error: error.message });
   }
 });
+
+// Archive
+router.put("/users/:id/archive", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    await pool.promise().query(
+      `UPDATE users SET is_archived = 1, archived_at = NOW() WHERE pwd_id = ?`,
+      [id]
+    );
+
+    const [updatedActiveUsers] = await pool.promise().query(`
+      SELECT num_users AS user_number, full_name, address, sex, pwd_id, status_ AS status, date_issued 
+      FROM users 
+      WHERE is_archived = 0
+      ORDER BY num_users ASC
+    `);
+    
+
+    const [updatedArchivedUsers] = await pool.promise().query(`
+      SELECT num_users, full_name, address, sex, types_of_disability, archived_at, pwd_id
+      FROM users
+      WHERE is_archived = 1
+      ORDER BY num_users ASC
+    `);
+
+    broadcastToClients({ event: "update-active", data: updatedActiveUsers });
+    broadcastToClients({ event: "update-archived", data: updatedArchivedUsers });
+
+    res.sendStatus(200);
+  } catch (e) {
+    res.status(500).send(e);
+  }
+});
+
+
+// Unarchive
+router.put("/users/:id/unarchive", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    await pool.promise().query(
+      `UPDATE users SET is_archived = 0, archived_at = NULL WHERE pwd_id = ?`,
+      [id]
+    );
+
+    const [updatedActiveUsers] = await pool.promise().query(`
+      SELECT num_users AS user_number, full_name, address, sex, pwd_id, status_ AS status, date_issued 
+      FROM users 
+      WHERE is_archived = 0
+      ORDER BY num_users ASC
+    `);
+    
+
+    const [updatedArchivedUsers] = await pool.promise().query(`
+      SELECT num_users, full_name, address, sex, types_of_disability, archived_at, pwd_id
+      FROM users
+      WHERE is_archived = 1
+      ORDER BY num_users ASC
+    `);
+
+    broadcastToClients({ event: "update-active", data: updatedActiveUsers });
+    broadcastToClients({ event: "update-archived", data: updatedArchivedUsers });
+
+    res.sendStatus(200);
+  } catch (e) {
+    res.status(500).send(e);
+  }
+});
+
+
+router.get("/pwd-forms", async (req, res) => {
+  const archived = req.query.archived === "1" ? 1 : 0;
+  const sql = `
+    SELECT
+    num_users,
+    full_name,
+    sex,
+    status_ AS status,
+    pwd_id,
+    types_of_disability,
+    archived_at
+  FROM users
+  WHERE is_archived = ?
+  ORDER BY num_users ASC
+  `;
+
+  try {
+    const [rows] = await pool.promise().query(sql, [archived]);
+    res.json(rows);
+  } catch (error) {
+    console.error("Error fetching archived users:", error);
+    res.status(500).send(error);
+  }
+});
+
 
 
 // Display data on AppDetailsForm_pg1 
@@ -139,8 +246,6 @@ router.get("/users/images/:pwd_id", async (req, res) => {
 });
 
 
-
-
 // PUT endpoint to update user details (triggered from AppDetailsForm_pg1.vue)
 router.put("/users/page1/:pwd_id", async (req, res) => {
   try {
@@ -206,13 +311,13 @@ router.put("/users/page1/:pwd_id", async (req, res) => {
 
     // Fetch the updated table and broadcast it to clients
     const [updatedTable] = await pool.promise().query(`
-      SELECT num_users AS user_number, full_name, sex, pwd_id, status_ AS status, date_issued 
+      SELECT num_users AS user_number, full_name, address, sex, pwd_id, status_ AS status, date_issued 
       FROM users 
       ORDER BY num_users ASC
     `);
 
     // Broadcast to all connected frontend clients
-    broadcastToClients(updatedTable);
+    broadcastToClients({ event: "update-active", data: updatedTable });
     
     res.json(updatedResults[0] || { message: "User updated successfully" });
   } catch (error) {
@@ -278,12 +383,12 @@ router.put("/users/page2/:pwd_id", async (req, res) => {
     );
 
     const [updatedTable] = await pool.promise().query(`
-      SELECT num_users AS user_number, full_name, sex, pwd_id, status_ AS status, date_issued 
+      SELECT num_users AS user_number, full_name, address, sex, pwd_id, status_ AS status, date_issued 
       FROM users 
       ORDER BY num_users ASC
     `);
 
-    broadcastToClients(updatedTable);
+    broadcastToClients({ event: "update-active", data: updatedTable });
 
     res.json(updatedResults[0] || { message: "User updated successfully" });
   } catch (error) {
@@ -302,118 +407,54 @@ function formatDateToMySQL(date) {
 
 
 // POST endpoint to insert a new user record (CREATE)
+// ✅ This is the correct one — KEEP THIS ONLY!
 router.post("/users", async (req, res) => {
   try {
-    // Destructure all required fields from the request body.
     const {
-      full_name,
-      types_of_disability,
-      address,
-      birthdate,
-      date_issued,
-      sex,
-      blood_type,
-      transfer_from,
-      care_of,
-      first_name,
-      middle_name,
-      surname,
-      barangay,
-      member_since,
-      education,
-      disability_cause,
-      pwd_id,
-      status_,
-      parent_guardian,
-      contact_number,
-      remarks,
-      philhealth_no,
-      assistive_device,
-      occupation,
+      full_name, types_of_disability, address, birthdate, date_issued, sex, blood_type,
+      transfer_from, care_of, first_name, middle_name, surname, barangay, member_since,
+      education, disability_cause, pwd_id, status_, parent_guardian, contact_number,
+      remarks, philhealth_no, assistive_device, occupation
     } = req.body;
-
 
     const [result] = await pool.promise().query("SELECT MAX(num_users) AS maxNum FROM users");
     const nextNumUsers = (result[0].maxNum || 0) + 1;
 
-    // 🧱 Step 2: Insert new user including num_users
     const query = `
       INSERT INTO users (
-        num_users,
-        full_name,
-        types_of_disability,
-        address,
-        birthdate,
-        date_issued,
-        sex,
-        blood_type,
-        transfer_from,
-        care_of,
-        first_name,
-        middle_name,
-        surname,
-        barangay,
-        member_since,
-        education,
-        disability_cause,
-        pwd_id,
-        status_,
-        parent_guardian,
-        contact_number,
-        remarks,
-        philhealth_no,
-        assistive_device,
-        occupation
+        num_users, full_name, types_of_disability, address, birthdate, date_issued, sex,
+        blood_type, transfer_from, care_of, first_name, middle_name, surname, barangay,
+        member_since, education, disability_cause, pwd_id, status_, parent_guardian,
+        contact_number, remarks, philhealth_no, assistive_device, occupation
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     await pool.promise().query(query, [
-      nextNumUsers,
-      full_name,
-      types_of_disability,
-      address,
-      birthdate,
-      date_issued,
-      sex,
-      blood_type,
-      transfer_from,
-      care_of,
-      first_name,
-      middle_name,
-      surname,
-      barangay,
-      member_since,
-      education,
-      disability_cause,
-      pwd_id,
-      status_,
-      parent_guardian,
-      contact_number,
-      remarks,
-      philhealth_no,
-      assistive_device,
-      occupation,
+      nextNumUsers, full_name, types_of_disability, address, birthdate, date_issued, sex,
+      blood_type, transfer_from, care_of, first_name, middle_name, surname, barangay,
+      member_since, education, disability_cause, pwd_id, status_, parent_guardian,
+      contact_number, remarks, philhealth_no, assistive_device, occupation
     ]);
 
-    // 🔁 Step 3: Optionally broadcast updated table
     const [updatedResults] = await pool.promise().query(`
-      SELECT num_users AS user_number, full_name, sex, pwd_id, status_ AS status, date_issued 
+      SELECT num_users AS user_number, full_name, address, sex, pwd_id, status_ AS status, date_issued 
       FROM users 
       ORDER BY num_users ASC
     `);
 
-    broadcastToClients(updatedResults);
+    broadcastToClients({ event: "update-active", data: updatedResults });
 
     res.status(201).json({
       message: "User added successfully",
-      user_number: nextNumUsers, // <-- your assigned num_users
-      pwd_id: pwd_id
-    });    
+      user_number: nextNumUsers,
+      pwd_id
+    });
   } catch (error) {
     console.error("Error inserting user:", error);
     res.status(500).json({ error: error.message });
   }
 });
+
 
 
 // GET next number on record navigator
@@ -429,7 +470,7 @@ router.get('/next-id', async (req, res) => {
 
 
 // GET all users
-router.get('/users', async (req, res) => {
+router.get("/users", async (req, res) => {
   try {
     const [users] = await pool.query(`
       SELECT 
@@ -667,7 +708,10 @@ router.delete("/users/:pwd_id", async (req, res) => {
   const { pwd_id } = req.params;
 
   try {
-    const [result] = await db.query("DELETE FROM users WHERE pwd_id = ?", [pwd_id]);
+    const [result] = await pool.promise().query(
+      "DELETE FROM users WHERE pwd_id = ?", 
+      [pwd_id]
+    );
 
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: "Record not found" });
@@ -684,36 +728,37 @@ router.delete("/users/:pwd_id", async (req, res) => {
 
 
 
-//websocket related endpoints
-// New POST endpoint to insert a user and broadcast updates
-router.post("/users", async (req, res) => {
-  try {
-    const { full_name, sex, pwd_id, status_, date_issued } = req.body;
-    const query = `
-      INSERT INTO users (full_name, sex, pwd_id, status_, date_issued)
-      VALUES (?, ?, ?, ?, ?)
-    `;
-    await pool.promise().query(query, [full_name, sex, pwd_id, status_, date_issued]);
-
-    // After insertion, fetch updated data
-    const [results] = await pool.promise().query(`
-      SELECT num_users AS user_number, full_name, sex, pwd_id, status_ AS status, date_issued 
-      FROM users 
-      ORDER BY num_users ASC
-    `);
-    
-    // Broadcast the updated results to all WebSocket clients
-    broadcastToClients(results);
-
-    res.status(201).json({ message: "User added successfully" });
-  } catch (error) {
-    console.error("Error adding user:", error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
 export default router;
 
 
 
+//websocket related endpoints
+// New POST endpoint to insert a user and broadcast updates
+// router.post("/users", async (req, res) => {
+//   try {
+//     const { full_name, sex, pwd_id, status_, date_issued } = req.body;
+//     const query = `
+//       INSERT INTO users (full_name, address, sex, pwd_id, status_, date_issued)
+//       VALUES (?, ?, ?, ?, ?)
+//     `;
+//     await pool.promise().query(query, [full_name, address, sex, pwd_id, status_, date_issued]);
 
+//     // Fetch updated list of active users
+//     const [updatedUserList] = await pool.promise().query(`
+//       SELECT num_users AS user_number, full_name, address, sex, pwd_id, status_ AS status, date_issued 
+//       FROM users 
+//       WHERE is_archived = 0
+//       ORDER BY num_users ASC
+//     `);    
+
+//     broadcastToClients({
+//       event: "update-active",
+//       data: updatedUserList
+//     });
+
+//     res.status(201).json({ message: "User added successfully" });
+//   } catch (error) {
+//     console.error("Error adding user:", error);
+//     res.status(500).json({ error: error.message });
+//   }
+// });

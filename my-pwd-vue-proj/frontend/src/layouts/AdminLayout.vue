@@ -1,11 +1,13 @@
+<!-- AdminLayout.vue -->
 <template>
   <div class="admin-layout">
     <NavBar />
     <div class="admin-content">
-      <!-- Listen for the openForm event from Database.vue -->
-      <router-view @openForm="fetchUserDetails" />
+      <router-view
+        @openForm="fetchUserDetails"
+        @updated="handleUpdate"
+      />
     </div>
-    <!-- Modal wrapper -->
     <div v-if="showAppDetails" class="modal-wrapper">
       <component
         :is="currentFormComponent"
@@ -16,6 +18,7 @@
         @close="closeForm"
         @next="goToNextPage"
         @prev="goToPreviousPage"
+        @updated="handleUpdate"
       />
     </div>
   </div>
@@ -49,6 +52,32 @@ export default {
     },
   },
   methods: {
+      fetchUserDetails(userData) {
+      this.selectedUser = userData;
+      this.showAppDetails = true;
+      this.formPage = 1;
+      this.currentPage = 1;
+    },
+    closeForm() {
+      this.showAppDetails = false;
+    },
+    goToPreviousPage() {
+      if (this.formPage > 1) {
+        this.formPage--;
+        this.currentPage--;
+      }
+    },
+    goToNextPage() {
+      if (this.formPage < this.totalPages) {
+        this.formPage++;
+        this.currentPage++;
+      }
+    },
+    handleUpdate() {
+      // ✅ Relay event to the currently displayed page (e.g. Database.vue)
+      this.$emit("updated"); // 👈 send it up to router-view
+      this.closeForm();      // optional: close modal after update
+    },
     fetchUserDetails(userData) {
       this.selectedUser = userData;
       this.showAppDetails = true;

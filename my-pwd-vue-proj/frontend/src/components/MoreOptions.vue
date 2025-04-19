@@ -18,35 +18,44 @@
 </template>
 
 <script setup>
+import axios from 'axios';
 import { defineProps, defineEmits } from "vue";
 
 const props = defineProps({
   isOpen: Boolean,
   index: Number,
+  recordId: [String, Number],    // new prop
 });
 
-const emit = defineEmits(["toggle", "openForm"]);
+const emit = defineEmits(["toggle", "openForm", "archive"]);
 
-
-const emitToggle = () => {
-  emit("toggle", props.index);
-};
-
+const emitToggle = () => emit("toggle", props.index);
 const viewRecord = () => {
   emit("openForm", props.index);
-  emit("toggle", props.index); // This should close the dropdown in parent
+  emitToggle();
+};
+// emit an archive event instead of alert
+// const archiveRecord = () => {
+//   emit("archive", props.recordId);
+//   emitToggle();
+// };
+const archiveRecord = async () => {
+  try {
+    const response = await axios.put(`http://localhost:4000/api/users/${props.recordId}/archive`);
+    
+    emit("updated", response.data); // ✅ Emit to parent
+    emit("toggle", props.index);    // Close dropdown
+  } catch (error) {
+    console.error("Error archiving:", error);
+  }
 };
 
-const archiveRecord = () => {
-  alert("Archiving Record");
-  // Close the dropdown after action
-  emit("toggle", props.index);
-};
 
-const getIconUrl = (fileName) => {
-  return new URL(`/src/assets/icons/${fileName}`, import.meta.url).href;
-};
+
+const getIconUrl = (fileName) =>
+  new URL(`/src/assets/icons/${fileName}`, import.meta.url).href;
 </script>
+
   
   <style scoped>
   .more-options {

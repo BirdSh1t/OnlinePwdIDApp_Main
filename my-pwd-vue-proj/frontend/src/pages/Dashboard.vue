@@ -40,9 +40,14 @@
 
     
     <!-- Tables Section -->
-    <div class="tables-container">
+    <!-- <div class="tables-container">
       <PWDTable :data="filteredData" />
       <RecentApplicantsTable />
+    </div> -->
+    <!-- Tables Section -->
+    <div class="tables-container">
+      <PWDTable :data="filteredData" />
+      <RecentApplicantsTable :recentData="recentApplicants" />
     </div>
   </div>
 </template>
@@ -55,15 +60,21 @@ import RecentApplicantsTable from '@/components/RecentApplicantsTable.vue';
 
 export default {
   name: "Dashboard",
-  components: { DashboardHeader, PWDTable, RecentApplicantsTable },
+  components: {
+    DashboardHeader,
+    PWDTable,
+    RecentApplicantsTable
+  },
   data() {
     return {
-      fullData: [],       // Initially fetched full data
-      filteredData: [],   // Data filtered based on search
+      users: [],               // Full real-time list
+      filteredData: [],        // Filtered view from search
+      recentApplicants: [],    // Last 5 entries
       totalApplicants: 0,
       walkInApplicants: 0,
       onlineApplicants: 0,
-      processingApplications: 0
+      processingApplications: 0,
+      socket: null,
     };
   },
   methods: {
@@ -71,33 +82,68 @@ export default {
       return new URL(`/src/assets/icons/${fileName}`, import.meta.url).href;
     },
     async handleSearch(query) {
-  try {
-    const res = await axios.get("http://localhost:4000/api/search", {
-      params: { page: "dashboard", query }
-    });
-    this.filteredData = res.data.length ? res.data : [];
-  } catch (error) {
-    console.error("Search error:", error);
-    this.filteredData = [];
+      if (!query.trim()) {
+        this.filteredData = this.users;
+        return;
+      }
+
+      try {
+        const res = await axios.get("http://localhost:4000/api/search", {
+          params: { page: "dashboard", query }
+        });
+        this.filteredData = res.data.length ? res.data : [];
+      } catch (error) {
+        console.error("Search error:", error);
+        this.filteredData = [];
       }
     }
   },
   async mounted() {
-    // On page load, fetch all users; store both fullData and filteredData
-    const res = await axios.get("http://localhost:4000/api/users");
-    this.fullData = res.data;
-    this.filteredData = res.data;
-    this.totalApplicants = res.data.length;
+    try {
+      const res = await axios.get("http://localhost:4000/api/users?archived=0");
+      this.users = res.data;
+      this.filteredData = res.data; // set this too!
+      console.log("Setting filteredData in Dashboard.vue:", this.filteredData);
+      console.log("Initial fetched data:", res.data[0]); // See if address exists
+      this.recentApplicants = res.data.slice(-5);//shows how many data to display
 
-    console.log("filteredData sample:", this.filteredData[0]);
+      this.totalApplicants = res.data.length;
+      this.walkInApplicants = res.data.filter(u => u.status === "Walk-in").length;
+      this.onlineApplicants = res.data.filter(u => u.status === "Online").length;
+      this.processingApplications = res.data.filter(u => u.status === "Processing").length;
+    } catch (err) {
+      console.error("Initial fetch error:", err);
+    }
+
+    // WebSocket setup
+    this.socket = new WebSocket("ws://localhost:4000");
+
+      this.socket.onmessage = (event) => {
+      const message = JSON.parse(event.data);
+      console.log("WebSocket update received:", message.data[0]);
+      console.log("WebSocket message:", message);
+      console.log("User sample:", message.data?.[0]);
+
+      if (message.event === "update-active") {
+        this.users = message.data;
+        this.filteredData = [...message.data]; // ✅ force reactive update
+        this.recentApplicants = message.data.slice(-5);
+      }
+    };
+  },
+  beforeUnmount() {
+    if (this.socket) this.socket.close();
+  },
+  watch: {
+  filteredData(newVal) {
+    console.log("filteredData changed:", newVal);
+  }
   }
 };
 </script>
 
 
-
 <style scoped>
-  
 /* Dashboard container */
 .dashboard-container {
   font-family: 'montserrat', sans-serif;

@@ -1,0 +1,456 @@
+<template>
+    <div class="login-container">
+      <!-- Header with Fade Transition -->
+      <transition name="fade">
+        <div class="header">
+          <img :src="getIconUrl('new-admin-white.png')" alt="Admin Icon" class="admin-icon" />
+          <div class="header-text">
+            <h1>Admin Login</h1>
+          </div>
+        </div>
+      </transition>
+  
+      <!-- Form Fields with Slide Transition -->
+      <transition-group name="form-slide" tag="div" class="form">
+        <!-- ✅ Admin ID -->
+        <div class="form-group" key="1">
+          <label>Admin ID</label>
+          <div
+          class="input-wrapper"
+                :class="{
+                'input-valid': validAdmin && loginClicked,
+                'input-invalid': !validAdmin && loginClicked
+                }"
+            >
+            <img :src="getIconUrl('employee-id-grey.png')" class="input-icon" />
+            <input
+                type="text"
+                placeholder="Enter admin ID"
+                v-model="adminId"
+            />
+            </div>
+        </div>
+  
+        <!-- ✅ Password -->
+        <div class="form-group" key="2">
+        <label>Password</label>
+            <div
+                class="input-wrapper"
+                :class="{
+                'input-valid': password.length >= 3 && validPassword,
+                'input-invalid': password.length >= 3 && !validPassword
+                }"
+            >
+                <img :src="getIconUrl('lock-grey.png')" class="input-icon" />
+                <input
+                :type="showPassword ? 'text' : 'password'"
+                placeholder="Enter password"
+                v-model="password"
+                />
+                <img
+                :src="getIconUrl(showPassword ? 'eye_open.png' : 'eye_closed.png')"
+                class="eye-toggle"
+                @mousedown="showPassword = true"
+                @mouseup="showPassword = false"
+                @mouseleave="showPassword = false"
+                />
+            </div>
+            </div>
+
+        <!-- ✅ Confirm Password -->
+        <div class="form-group" key="3">
+            <label>Confirm Password</label>
+            <div
+                class="input-wrapper"
+                :class="{
+                'input-valid': confirmPassword.length >= 3 && validConfirmPassword,
+                'input-invalid': confirmPassword.length >= 3 && !validConfirmPassword
+                }"
+            >
+                <img
+                :src="getIconUrl(validConfirmPassword ? 'unlock-grey.png' : 'lock-grey.png')"
+                class="input-icon"
+                />
+                <input
+                type="password"
+                placeholder="Confirm password"
+                v-model="confirmPassword"
+                />
+            </div>
+        </div>
+  
+        <!-- ✅ Login Button -->
+        <button
+          class="login-btn"
+          key="4"
+          :disabled="!canLogin"
+          :style="{ backgroundColor: canLogin ? '#149656' : '#d9d9d9' }"
+          @click="handleLogin"
+        >
+          <img :src="getIconUrl('log-in-white.png')" class="login-icon" />
+          Login
+        </button>
+  
+        <!-- ✅ Go Back Button -->
+        <button class="go-back-btn" key="5" @click="$emit('goBack')">
+          <span class="arrow"></span> 
+          <img :src="getIconUrl('go-back-arrow-green.png')" class="go-back-arrow-green" />
+          <div class="go-back-label">Go Back</div>
+        </button>
+  
+        <!-- ✅ Lockout Countdown -->
+        <p v-if="isLockedOut" class="cooldown" key="6">
+          Please wait {{ lockoutTime }} seconds before trying again.
+        </p>
+      </transition-group>
+    </div>
+  </template>
+  
+  
+  <script setup>
+  import { ref, computed, watch } from 'vue'
+  import axios from 'axios'
+  import { useRouter } from 'vue-router'
+  import { useToast } from 'vue-toastification'
+  
+  const router = useRouter()
+  const toast = useToast()
+  
+  const adminId = ref('')
+  const password = ref('')
+  const confirmPassword = ref('')
+  const loginAttempts = ref(0)
+  const isLockedOut = ref(false)
+  const lockoutTime = ref(0)
+  const isLoading = ref(false)
+  const showPassword = ref(false);
+  
+  const validAdmin = ref(false)
+  const validPassword = ref(false)
+  const validConfirmPassword = ref(false)
+  const loginClicked = ref(false) // New flag
+
+  // Validate password format
+  watch(password, (val) => {
+    const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(val)
+    validPassword.value = val.length >= 8 && hasSpecial
+    checkConfirm()
+  })
+  
+  // Confirm password must match password
+  watch(confirmPassword, () => checkConfirm())
+  
+  function checkConfirm() {
+    validConfirmPassword.value = password.value === confirmPassword.value
+  }
+  
+  watch(adminId, async (val) => {
+  if (!val) {
+    validAdmin.value = false
+    return
+  }
+
+  try {
+    const checkRes = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/check-admin`, {
+      admin_id: val
+    })
+    validAdmin.value = checkRes.data.exists
+  } catch (err) {
+    validAdmin.value = false
+  }
+})
+
+
+  // Compute login button state
+const canLogin = computed(() => {
+  return (
+    adminId.value &&
+    password.value &&
+    confirmPassword.value &&
+    !isLockedOut.value
+  )
+})
+
+  
+  // Handle login
+  async function handleLogin() {
+loginClicked.value = true
+
+  if (!adminId.value || !password.value || !confirmPassword.value) return;
+
+  isLoading.value = true;
+
+  try {
+    // Step 1: Check if Admin ID exists
+    const checkRes = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/check-admin`, {
+      admin_id: adminId.value
+    })
+
+    validAdmin.value = checkRes.data.exists
+
+    if (!validAdmin.value) {
+      toast.error('Admin ID not found.')
+      return
+    }
+
+    // Step 2: Check password format & match
+    const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password.value)
+    validPassword.value = password.value.length >= 8 && hasSpecial
+    validConfirmPassword.value = password.value === confirmPassword.value
+
+    if (!validPassword.value || !validConfirmPassword.value) {
+      toast.error('Invalid password format or mismatch.')
+      return
+    }
+
+    // Step 3: Attempt login
+    const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/LandingPage`, {
+      admin_id: adminId.value,
+      pass: password.value
+    })
+
+    if (res.data.success) {
+      toast.success('Login successful!')
+      router.push('/admin/dashboard')
+    } else {
+      throw new Error('Invalid credentials')
+    }
+  } catch {
+    loginAttempts.value++
+    toast.error('Login failed.')
+
+    if (loginAttempts.value === 5) startCooldown(60)
+    if (loginAttempts.value === 10) startCooldown(3600)
+  } finally {
+    isLoading.value = false
+  }
+}
+
+  
+  // Cooldown logic
+  function startCooldown(seconds) {
+    isLockedOut.value = true
+    lockoutTime.value = seconds
+  
+    const interval = setInterval(() => {
+      lockoutTime.value--
+      if (lockoutTime.value <= 0) {
+        clearInterval(interval)
+        loginAttempts.value = 0
+        isLockedOut.value = false
+      }
+    }, 1000)
+  }
+  
+  function getIconUrl(fileName) {
+    return new URL(`/src/assets/icons/${fileName}`, import.meta.url).href
+  }
+  </script>
+  
+  
+  <style scoped>
+.login-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 50vw; /* Match the right column */
+  height: 100vh;
+  font-family: 'Barlow', sans-serif;
+  background-color: white;
+  overflow-y: auto;
+}
+
+/* === Header Section === */
+.header {
+  background-color: #149656;
+  width: 88%;
+  display: flex;
+  align-items: center;
+  padding: 2vh 3vw;
+  position: relative;
+  flex-direction: row;
+  gap: 2vw;
+}
+
+.header::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 1vh;
+  background-color: #cefe3c;
+}
+
+.admin-icon {
+  margin-left: 70px;
+  width: 6vw;
+  aspect-ratio: 1 / 1;
+}
+
+.header-text h1 {
+  color: white;
+  font-family: 'Roboto', sans-serif;
+  font-size: 5vw;
+  margin: 0;
+}
+
+.header-text p {
+  color: white;
+  font-size: 1.2vw;
+}
+
+/* === Form Section === */
+.form {
+  width: 80%;
+  max-width: 600px;
+  margin-top: 15vh;
+  margin-left: 5vh;
+  display: flex;
+  flex-direction: column;
+  gap: 2vh;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1vh;
+}
+
+label {
+  font-family: 'Barlow', sans-serif;
+  color: #707680;
+  font-size: 1.3vw;
+}
+
+.input-wrapper {
+  display: flex;
+  align-items: center;
+  border: 0.2vw solid #ededed;
+  padding: 1vh 1vw;
+  border-radius: 0.5vw;
+  background-color: white;
+  transition: border-color 0.2s ease-in-out;
+}
+
+/* ✅ Input focus style (optional enhancement) */
+.input-wrapper:focus-within {
+  border-color: #149656;
+}
+
+.input-wrapper input {
+  border: none;
+  outline: none;
+  width: 100%;
+  font-size: 1.3vw;
+  font-family: 'Barlow', sans-serif;
+  color: #707680;
+  padding-left: 1vw;
+}
+
+.input-icon {
+  width: 2.5vw;
+  height: 2.5vw;
+  object-fit: contain;
+}
+
+/* ✅ Dynamic border classes (apply to input-wrapper) */
+.input-valid {
+  border-color: #00c853 !important; /* Green */
+}
+
+.input-invalid {
+  border-color: #ff3131 !important; /* Red */
+}
+
+.eye-toggle {
+  width: 2vw;
+  height: 2vw;
+  object-fit: contain;
+  margin-left: auto;
+  cursor: pointer;
+}
+
+/* === Buttons === */
+.login-btn {
+  margin-top: 3.5vh;
+  background-color: #149656;
+  border: none;
+  color: white;
+  padding: 1.5vh 0;
+  font-size: 1.8vw;
+  font-family: 'Roboto', sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1vw;
+  border-radius: 0.5vw;
+  cursor: pointer;
+}
+
+.login-icon {
+  width: 2vw;
+  height: 2vw;
+}
+
+.go-back-arrow-green{
+  width: 2vw;
+  height: 2vw;
+}
+
+.go-back-btn {
+  border: 0.2vw solid #ededed;
+  color: #149656;
+  background-color: white;
+  font-size: 1.8vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1vw;
+  font-family: 'Roboto', sans-serif;
+  padding: 1.5vh 0;
+  border-radius: 0.5vw;
+  cursor: pointer;
+}
+
+.go-back-label{
+    margin-right: 15px;
+}
+
+.go-back-icon {
+  width: 2vw;
+  height: 2vw;
+}
+
+/* === Transitions === */
+.fade-enter-active {
+  transition: opacity 0.5s ease;
+}
+
+.fade-enter-from {
+  opacity: 0;
+}
+
+.form-slide-enter-active {
+  transition: all 0.4s ease;
+  
+}
+.form-slide-enter-from {
+  opacity: 0;
+  transform: translateY(2vh);
+}
+
+.arrow {
+  margin-right: 5px;
+}
+</style>
+
+<!-- // Simulated DB check - replace this with actual fetch from your backend later if needed
+//   async function checkAdminId(input) {
+//     try {
+//       const { data } = await axios.post(`/api/auth/LandingPage?admin_id=${input}`)
+//       return data.exists
+//     } catch (error) {
+//       return false
+//     }
+//   } -->

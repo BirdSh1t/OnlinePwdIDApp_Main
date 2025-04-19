@@ -5,6 +5,13 @@
       <DashboardHeader title="Dashboard" @search="handleSearch" />
     </div>
 
+    <!-- <AppDetailsForm_pg1
+        v-if="showForm"
+        :formData="selectedUser"
+        @close="showForm = false"
+        @updated="fetchDatabaseData"
+      /> -->
+
     <!-- Table Card -->
     <div class="table-card">
 
@@ -65,10 +72,13 @@
                 <td>{{ formatDate(row.date_issued) }}</td>
                 <td class="more-cell">
                   <MoreOptions
-                    :index="index"
                     :isOpen="activeIndex === index"
+                    :index="index"
+                    :recordId="row.pwd_id"
                     @toggle="toggleDropdown"
                     @openForm="openFormFromRow"
+                    @archive="archiveUser"
+                    @updated="handleUpdated"
                   />
                 </td>
               </tr>
@@ -76,6 +86,7 @@
           </table>
         </div>
       </div>
+      
   </div>
 </template>
 
@@ -97,51 +108,54 @@ export default {
   },
   data() {
     return {
-      selectedFilters: ["All", "All"], // Default filters
-      sexOptions: ["All", "Male", "Female"], // Options for sex filter
-      statusOptions: ["All", "Valid", "Invalid"], // Options for status filter
+      selectedFilters: ["All", "All"],
+      sexOptions: ["All", "Male", "Female"],
+      statusOptions: ["All", "Valid", "Invalid"],
       selectedDate: null,
       tableData: [],
       activeIndex: null,
       socket: null,
-      searchQuery: "", // For search input
-      };
-    },
-    computed: {
+      searchQuery: ""
+    };
+  },
+  computed: {
     filteredTableData() {
-        return this.tableData.filter(row => {
-          const sexMatch = this.selectedFilters[0] === "All" || row.sex.toLowerCase() === this.selectedFilters[0].toLowerCase();
-          const statusMatch = this.selectedFilters[1] === "All" || row.status.toLowerCase() === this.selectedFilters[1].toLowerCase();
+      return this.tableData.filter(row => {
+        const sexMatch =
+          this.selectedFilters[0] === "All" ||
+          row.sex.toLowerCase() === this.selectedFilters[0].toLowerCase();
+        const statusMatch =
+          this.selectedFilters[1] === "All" ||
+          row.status.toLowerCase() === this.selectedFilters[1].toLowerCase();
+        const dateMatch =
+          !this.selectedDate ||
+          (row.date_issued &&
+            new Date(row.date_issued).toDateString() ===
+              new Date(this.selectedDate).toDateString());
 
-          const dateMatch = !this.selectedDate || (
-            row.date_issued &&
-            new Date(row.date_issued).toDateString() === new Date(this.selectedDate).toDateString()
-          );
-
-          return sexMatch && statusMatch && dateMatch;
-        });
-      }
-    },
-    mounted() {
-    this.fetchDatabaseData();
-    this.setupWebSocket();
+        return sexMatch && statusMatch && dateMatch;
+      });
+    }
   },
   methods: {
+    handleUpdated() {
+    this.fetchDatabaseData(); // Re-fetch data after archive
+    },
+    // already existing methods
     fetchDatabaseData() {
-      axios
-        .get("http://localhost:4000/api/users")
-        .then((response) => {
-          this.tableData = response.data;
-        })
-        .catch((error) => {
-          console.error("Error fetching data:", error);
-        });
+    axios
+      .get("http://localhost:4000/api/users", { params: { archived: 0 } }) // ✅ only active
+      .then((res) => {
+        this.tableData = res.data;
+      })
+      .catch((error) => {
+        console.error("Error fetching data:", error);
+      });
     },
     searchUsers() {
       const query = this.searchQuery.trim();
 
       if (query === "") {
-        // If empty, reload the original data
         this.fetchDatabaseData();
         return;
       }
@@ -149,20 +163,16 @@ export default {
       axios
         .get("http://localhost:4000/api/search", {
           params: {
-            page: "report", // Same structure as your database table
+            page: "report",
             query
           }
         })
-        .then((response) => {
+        .then(response => {
           const results = response.data;
-
-          if (results.length && results[0].noMatch) {
-            this.tableData = [];
-          } else {
-            this.tableData = results;
-          }
+          this.tableData =
+            results.length && results[0].noMatch ? [] : results;
         })
-        .catch((error) => {
+        .catch(error => {
           console.error("Error searching data:", error);
         });
     },
@@ -178,8 +188,10 @@ export default {
       };
 
       this.socket.onmessage = (event) => {
-        const updatedData = JSON.parse(event.data);
-        this.tableData = updatedData;
+        const message = JSON.parse(event.data);
+        if (message.event === "update-active") {
+          this.tableData = message.data;
+        }
       };
 
       this.socket.onclose = () => {
@@ -193,8 +205,12 @@ export default {
       try {
         const user = this.tableData[rowIndex];
         const [basicResponse, detailsResponse] = await Promise.all([
-          axios.get(`http://localhost:4000/api/users/page1/${user.pwd_id}`),
-          axios.get(`http://localhost:4000/api/users/page2/${user.pwd_id}`)
+          axios.get(
+            `http://localhost:4000/api/users/page1/${user.pwd_id}`
+          ),
+          axios.get(
+            `http://localhost:4000/api/users/page2/${user.pwd_id}`
+          )
         ]);
         const userData = {
           ...basicResponse.data,
@@ -205,10 +221,22 @@ export default {
         console.error("Error fetching user details:", error);
       }
     },
+    async archiveUser(pwd_id) {
+      try {
+        await axios.put(`http://localhost:4000/api/users/${pwd_id}/archive`);
+        // Let WebSocket broadcast the new list
+      } catch (error) {
+        console.error("Error archiving user:", error);
+      }
+    },
     formatDate(dateString) {
       const options = { year: "numeric", month: "short", day: "numeric" };
       return new Date(dateString).toLocaleDateString(undefined, options);
     }
+  },
+  mounted() {
+    this.fetchDatabaseData();
+    this.setupWebSocket();
   },
   beforeDestroy() {
     if (this.socket) {
@@ -217,6 +245,7 @@ export default {
   }
 };
 </script>
+
 
 <style scoped>
 /* Overall Page Container */

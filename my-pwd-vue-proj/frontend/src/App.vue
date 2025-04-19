@@ -1,5 +1,5 @@
 <template>
-  <router-view /> <!-- ✅ Let layouts handle structure -->
+  <router-view />  <!-- ✅ Let layouts handle structure -->
 </template>
 
 <script>
@@ -30,7 +30,6 @@ export default {};
 
 html, body, #app, .app-container {
   height: 100vh;
-  overflow-y: auto;
   margin: 0;
   padding: 0;
 }
