@@ -10,6 +10,7 @@ import { createVuetify } from 'vuetify'
 import VueEasyLightbox from 'vue-easy-lightbox'
 import 'vue-easy-lightbox/dist/external-css/vue-easy-lightbox.css'
 
+
 const vuetify = createVuetify({
   defaults: {
     global: {

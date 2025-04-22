@@ -726,6 +726,49 @@ router.delete("/users/:pwd_id", async (req, res) => {
 
 
 
+/*********Pending Applicants endpoints*********/
+
+// GET all pending applications
+router.get('/pending', async (req, res) => {
+  const [rows] = await pool.promise().query(`SELECT * FROM pending_applications`);
+  res.json(rows);
+});
+
+// Approve
+router.put('/pending/:id/approve', async (req, res) => {
+  const id = req.params.id;
+
+  // 1. Move to `users` table logic here...
+  // 2. Update application_status = 'approved', evaluated_at = NOW()
+
+  await pool.promise().query(`
+    UPDATE pending_applications 
+    SET application_status = 'approved', evaluated_at = NOW() 
+    WHERE id = ?
+  `, [id]);
+
+  res.sendStatus(200);
+});
+
+// Reject
+router.put('/pending/:id/reject', async (req, res) => {
+  const id = req.params.id;
+  await pool.promise().query(`
+    UPDATE pending_applications 
+    SET application_status = 'rejected', evaluated_at = NOW() 
+    WHERE id = ?
+  `, [id]);
+
+  res.sendStatus(200);
+});
+
+
+
+
+
+
+
+
 
 
 export default router;

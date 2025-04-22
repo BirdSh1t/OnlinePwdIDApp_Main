@@ -113,7 +113,9 @@
           <!-- Apply Now Card -->
           <div class="info-card-section">
             <div class="card-header">APPLY NOW</div>
-            <p class="card-text">CLICK HERE TO APPLY</p>
+            <router-link to="/pwd/applications" class="card-text-link">
+              <p class="card-text">CLICK HERE TO APPLY</p>
+            </router-link>
             <img :src="getIconUrl('apply-now-icon.png')" alt="Apply Now" class="card-icon-AppNow" />
           </div>
 
@@ -169,6 +171,7 @@ export default {
 <style scoped>
 /* ✅ Main Container */
 .home-bg-container {
+  
   width: 100vw;
   min-height: 100vh;
   overflow: hidden;
@@ -701,4 +704,19 @@ export default {
 .mask-overlay.active {
   display: block;
 }
+
+.card-text-link {
+  text-decoration: none;
+}
+
+.card-text-link .card-text {
+  color: #000;
+  transition: color 0.3s ease;
+}
+
+.card-text-link .card-text:hover {
+  color: #066aff;
+  cursor: pointer;
+}
+
 </style>

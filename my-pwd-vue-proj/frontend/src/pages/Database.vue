@@ -5,13 +5,6 @@
       <DashboardHeader title="Dashboard" @search="handleSearch" />
     </div>
 
-    <!-- <AppDetailsForm_pg1
-        v-if="showForm"
-        :formData="selectedUser"
-        @close="showForm = false"
-        @updated="fetchDatabaseData"
-      /> -->
-
     <!-- Table Card -->
     <div class="table-card">
 
