@@ -1,10 +1,13 @@
 <template>
-    <div class="pwd-layout">
-      <router-view /> <!-- ✅ Load PWD pages inside -->
-      <Footer class="Footer"/> 
-    </div>
-  </template>
-  
+  <div class="pwd-layout">
+    <Header />
+    <main class="pwd-content">
+      <router-view />
+    </main>
+    <Footer calls="Footer" />
+  </div>
+</template>
+
   <script>
   import Header from '@/components/Header.vue';
   import Footer from '@/components/Footer.vue';
@@ -30,10 +33,22 @@
   padding: 1rem;
   z-index: 1;
 }
-  .pwd-layout {
-    display: flex;
-    overflow: hidden;
-    flex-direction: column;
-  }
+
+.pwd-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.pwd-content {
+  flex: 1; 
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+}
+
+  router-view {
+  flex-grow: 1; /* takes up available vertical space */
+}
   </style>
   

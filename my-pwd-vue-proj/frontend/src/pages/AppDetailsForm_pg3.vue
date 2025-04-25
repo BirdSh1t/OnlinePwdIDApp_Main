@@ -8,12 +8,12 @@
             <h2 class="form-title">DOCUMENTS</h2>
             <div class="right-header-group">
                 <div class="picture-placeholder">
-                <img
+                  <img
                     v-if="userImages['1x1_img']"
                     :src="userImages['1x1_img']"
                     class="resized-1x1"
                     @click="openImageModal(userImages['1x1_img'])"
-                />
+                  />
                 </div>
               <img :src="getIconUrl('edit_black.png')" alt="Edit" class="edit-icon" @click="toggleEditMode" />
             </div>
@@ -23,27 +23,46 @@
             <main class="form-body">
 
             <div class="form-group linked-item">
-            <a class="doc-link linked-word" @click="openImageModal(userImages['1x1_img'])">1x1 ID Picture</a>
+              <a class="doc-link linked-word" 
+              @click="openImageModal(userImages['1x1_img'])">
+                1x1 ID Picture
+              </a>
             </div>
 
             <div class="form-group linked-item">
-            <a class="doc-link linked-word" @click="openImageModal(userImages['votersreg_img'])">Voters Registration</a>
+              <a
+                class="doc-link linked-word"
+                @click="openImageModal(userImages['votersreg_img'])">
+                Voters Registration
+              </a>
             </div>
 
             <div class="form-group linked-item">
-            <a class="doc-link linked-word" @click="openImageModal(userImages['birthcert_img'])">Birth Certification</a>
+              <a class="doc-link linked-word" 
+              @click="openImageModal(userImages['birthcert_img'])">
+                Birth Certification
+              </a>
             </div>
 
             <div class="form-group linked-item">
-            <a class="doc-link linked-word" @click="openImageModal(userImages['brgycert_img'])">Barangay Certification</a>
+              <a class="doc-link linked-word" 
+              @click="openImageModal(userImages['brgycert_img'])">
+                Barangay Certification
+              </a>
             </div>
 
             <div class="form-group linked-item">
-            <a class="doc-link linked-word" @click="openImageModal(userImages['govissue_img_1'])">Government Issue 1</a>
+              <a class="doc-link linked-word" 
+              @click="openImageModal(userImages['govissue_img_1'])">
+                Government Issue 1
+              </a>
             </div>
 
             <div class="form-group linked-item">
-            <a class="doc-link linked-word" @click="openImageModal(userImages['govissue_img_2'])">Government Issue 2</a>
+              <a class="doc-link linked-word" 
+              @click="openImageModal(userImages['govissue_img_2'])">
+                Government Issue 2
+              </a>
             </div>
 
             <vue-easy-lightbox
@@ -165,9 +184,6 @@ function fetchUserImages() {
     .catch(err => console.error("Image fetch error:", err));
 }
 </script>
-
-  
-  
   
   <style scoped>
   /* Fade transition for black mask & form */

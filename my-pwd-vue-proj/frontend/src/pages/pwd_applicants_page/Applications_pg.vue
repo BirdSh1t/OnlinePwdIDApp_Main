@@ -1,5 +1,6 @@
 <template>
   <div class="application-page">
+    <Header class="NavBar" />
     <!-- Hero Section with Background Image -->
     <div class="hero-section">
       <img 
@@ -18,11 +19,11 @@
         </p>
       </div>
     </div>
-
+    
 
       <!-- Content Section -->
       <div class="content-section">
-
+        
       <p class="required-note">
           Fields marked with an asterisk (<span class="asterisk">*</span>) are required. If a field does not apply, please enter N/A.
       </p>
@@ -57,7 +58,6 @@
             <label>Home Address<span class="asterisk">*</span></label>
           </div>
           
-
           <div class="form-row dropdown-row">
             <div class="form-group-age">
               <input type="text" v-model="formData.age" required @keypress="preventLetters" maxlength="3" />
@@ -66,7 +66,7 @@
 
             <div class="form-group dropdown-group">
               <multiselect
-              v-model="sex"
+              v-model="formData.sex"
               :options="sexOptions"
               class="custom-dropdown"
               id="sex"
@@ -77,10 +77,12 @@
 
           <div class="form-group">
               <Datepicker
-              v-model="birthDate"
+              v-model="formData.birthdate"
               class="custom-datepicker"
               id="birthDate"
               :enable-time-picker="false"
+              :disabled-date="isInvalidDate"
+              :custom-classes="customDateClass"
               placeholder="Select birth date"
               required
               />
@@ -132,7 +134,7 @@
 
           <div class="form-group dropdown-group">
               <multiselect
-              v-model="bloodType"
+              v-model="formData.bloodType"
               :options="bloodTypeOptions"
               class="custom-dropdown"
               id="bloodType"
@@ -142,7 +144,7 @@
 
           <div class="form-group dropdown-group">
               <multiselect
-              v-model="education"
+              v-model="formData.education"
               :options="educationOptions"
               class="custom-dropdown"
               id="education"
@@ -153,7 +155,7 @@
 
           <div class="form-row dropdown-row">
           <div class="form-group-PhilNum">
-              <input type="text" placeholder="Enter PhilHealth number" required />
+              <input type="text" v-model="formData.philhealth_no" placeholder="Enter PhilHealth number" required @keypress="preventLetters" />
               <label>PhilHealth Number<span class="asterisk">*</span></label>
           </div>
 
@@ -169,7 +171,7 @@
 
           <div class="form-group dropdown-group">
               <multiselect
-              v-model="employmentStatus"
+              v-model="formData.employment_status"
               :options="employmentStatusOptions"
               class="custom-dropdown"
               id="employmentStatus"
@@ -184,7 +186,7 @@
 
           <div class="form-row document-links">
             <!-- 🟩 Birth Certificate -->
-            <label class="upload-label">
+            <label class="upload-label" @click="handleLabelClick('birthcert_img', $event)">
               <input
                 type="file"
                 accept="image/png,image/jpeg,application/pdf"
@@ -195,18 +197,14 @@
               <span
                 class="file-action"
                 :class="{ remove: formData.birthcert_img }"
-                @click="formData.birthcert_img ? removeFile('birthcert_img') : null"
+                @click.stop="formData.birthcert_img ? removeFile('birthcert_img') : null"
               >
                 {{ formData.birthcert_img ? '×' : '*' }}
               </span>
             </label>
-            <div v-if="formData.birthcert_img" class="file-preview">
-              {{ formData.birthcert_img.name }}
-              <button v-if="isImage(formData.birthcert_img)" @click="openPreview('birthcert_img')">Preview</button>
-            </div>
 
             <!-- 🟩 Barangay Certificate -->
-            <label class="upload-label">
+            <label class="upload-label" @click="handleLabelClick('brgycert_img', $event)">
               <input
                 type="file"
                 accept="image/png,image/jpeg,application/pdf"
@@ -217,18 +215,14 @@
               <span
                 class="file-action"
                 :class="{ remove: formData.brgycert_img }"
-                @click="formData.brgycert_img ? removeFile('brgycert_img') : null"
+                @click.stop="formData.brgycert_img ? removeFile('brgycert_img') : null"
               >
                 {{ formData.brgycert_img ? '×' : '*' }}
               </span>
             </label>
-            <div v-if="formData.brgycert_img" class="file-preview">
-              {{ formData.brgycert_img.name }}
-              <button v-if="isImage(formData.brgycert_img)" @click="openPreview('brgycert_img')">Preview</button>
-            </div>
 
             <!-- 🟩 Voter's Registration -->
-            <label class="upload-label">
+            <label class="upload-label" @click="handleLabelClick('votersreg_img', $event)">
               <input
                 type="file"
                 accept="image/png,image/jpeg,application/pdf"
@@ -239,18 +233,14 @@
               <span
                 class="file-action"
                 :class="{ remove: formData.votersreg_img }"
-                @click="formData.votersreg_img ? removeFile('votersreg_img') : null"
+                @click.stop="formData.votersreg_img ? removeFile('votersreg_img') : null"
               >
                 {{ formData.votersreg_img ? '×' : '*' }}
               </span>
             </label>
-            <div v-if="formData.votersreg_img" class="file-preview">
-              {{ formData.votersreg_img.name }}
-              <button v-if="isImage(formData.votersreg_img)" @click="openPreview('votersreg_img')">Preview</button>
-            </div>
 
             <!-- 🟩 Government ID 1 -->
-            <label class="upload-label">
+            <label class="upload-label" @click="handleLabelClick('govissue_img_1', $event)">
               <input
                 type="file"
                 accept="image/png,image/jpeg,application/pdf"
@@ -261,18 +251,14 @@
               <span
                 class="file-action"
                 :class="{ remove: formData.govissue_img_1 }"
-                @click="formData.govissue_img_1 ? removeFile('govissue_img_1') : null"
+                @click.stop="formData.govissue_img_1 ? removeFile('govissue_img_1') : null"
               >
                 {{ formData.govissue_img_1 ? '×' : '*' }}
               </span>
             </label>
-            <div v-if="formData.govissue_img_1" class="file-preview">
-              {{ formData.govissue_img_1.name }}
-              <button v-if="isImage(formData.govissue_img_1)" @click="openPreview('govissue_img_1')">Preview</button>
-            </div>
 
             <!-- 🟩 Government ID 2 -->
-            <label class="upload-label">
+            <label class="upload-label" @click="handleLabelClick('govissue_img_2', $event)">
               <input
                 type="file"
                 accept="image/png,image/jpeg,application/pdf"
@@ -283,18 +269,14 @@
               <span
                 class="file-action"
                 :class="{ remove: formData.govissue_img_2 }"
-                @click="formData.govissue_img_2 ? removeFile('govissue_img_2') : null"
+                @click.stop="formData.govissue_img_2 ? removeFile('govissue_img_2') : null"
               >
                 {{ formData.govissue_img_2 ? '×' : '*' }}
               </span>
             </label>
-            <div v-if="formData.govissue_img_2" class="file-preview">
-              {{ formData.govissue_img_2.name }}
-              <button v-if="isImage(formData.govissue_img_2)" @click="openPreview('govissue_img_2')">Preview</button>
-            </div>
-              
+
             <!-- 🟩 1x1 Photo -->
-            <label class="upload-label">
+            <label class="upload-label" @click="handleLabelClick('1x1_img', $event)">
               <input
                 type="file"
                 accept="image/png,image/jpeg"
@@ -305,17 +287,27 @@
               <span
                 class="file-action"
                 :class="{ remove: formData['1x1_img'] }"
-                @click="formData['1x1_img'] ? removeFile('1x1_img') : null"
+                @click.stop="formData['1x1_img'] ? removeFile('1x1_img') : null"
               >
                 {{ formData['1x1_img'] ? '×' : '*' }}
               </span>
             </label>
 
-            <div v-if="formData['1x1_img']" class="file-preview">
-              {{ formData['1x1_img'].name }}
-              <button v-if="isImage(formData['1x1_img'])" @click="openPreview('1x1_img')">Preview</button>
-              <span class="file-action remove" @click="removeFile('1x1_img')">×</span>
+          <!-- Schedule Picker (conditionally shown) -->
+          <div class="Sched-row" v-if="isScheduleVisible">
+            <div class="form-group-sched">
+              <Datepicker
+                v-model="formData.Schedule"
+                class="custom-datepicker"
+                :enable-time-picker="false"
+                :min-date="new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)"
+                placeholder="Select Schedule Date"
+                :day-class="customDateClass"
+                :disabled-date="isInvalidDate"
+              />
+              <label for="Schedule">Pick up Schedule<span class="asterisk">*</span></label>
             </div>
+          </div>
 
             <!-- 🔍 Lightbox Preview -->
             <VueEasyLightbox
@@ -324,7 +316,6 @@
               @hide="preview.visible = false"
             />
             </div>
-        
         <!-- Submit Button -->
         <button type="submit" class="submit-btn">Submit Application</button>
       </form>
@@ -341,13 +332,15 @@ import Datepicker from "@vuepic/vue-datepicker";
 import "@vuepic/vue-datepicker/dist/main.css";
 import VueEasyLightbox from 'vue-easy-lightbox';
 import { useToast } from 'vue-toastification';
+import Header from '@/components/Header.vue';
+import TermsAndConditionModal from '@/components/modals/TermsAndConditionModal.vue';
 
 export default {
-  components: { Multiselect, Datepicker, VueEasyLightbox },
+  components: { Multiselect, Datepicker, VueEasyLightbox, Header, TermsAndConditionModal },
   name: "ApplicationsPg",
   data() {
     return {
-
+      showModal: true,
       toast: useToast(),
       // 🔍 preview must be outside formData
       preview: {
@@ -368,24 +361,20 @@ export default {
         birthdate: null,
         contact_number: "",
         email: "",
-
         parent_guardian: "",
         civil_status: "",
         employment_status: "",
-
         types_of_disability: "",
-        disability_cause: "",
-        assistive_device: "",
-
-        remarks: "",
-        annotation: "",
-
+        bloodType: "",
+        education: "",
+        philhealth_no: "",
         birthcert_img: null,
         brgycert_img: null,
         votersreg_img: null,
         govissue_img_1: null,
         govissue_img_2: null,
         ["1x1_img"]: null,
+        Schedule: "",
       },
 
       // 🔽 Dropdown values
@@ -416,26 +405,96 @@ export default {
   },
 
   // ✅ Load saved form on page refresh
-    mounted() {
-    const saved = localStorage.getItem("pwd_application_form");
-    const toast = useToast(); // ✅ initialize it here
+  mounted() {
+    const raw = localStorage.getItem("pwd_application_form");
+    if (raw) {
+      const saved = JSON.parse(raw);
+      // Check that saved has at least one non-empty value:
+      const hasSomething = Object.values(saved).some(val => {
+        // for files check non-null, for strings non-"" etc.
+        return val !== null && val !== "" && val !== undefined;
+      });
+      if (hasSomething) {
+        this.formData = { ...this.formData, ...saved };
+        this.toast.info("Restored previous form data.");
+      }
+    }
+  // Show modal and lock scroll
+  document.body.classList.add('modal-open');
+  this.showModal = true;
+  },
+  beforeUnmount() {
+    // Cleanup modal
+    document.body.classList.remove('modal-open');
+    document.body.style.overflow = '';
+  },
+  computed: {
+    // instead of a method, make this computed so it re‐runs automatically
+  isScheduleVisible() {
+    const required = [
+      'first_name', 'middle_name', 'surname', 'full_name',
+      'address', 'age', 'sex', 'birthdate', 'contact_number',
+      'email', 'parent_guardian', 'civil_status', 'employment_status',
+      'types_of_disability', 'bloodType', 'education', 'philhealth_no',
+      'birthcert_img', 'brgycert_img', 'votersreg_img',
+      'govissue_img_1', 'govissue_img_2', '1x1_img'
+      ];
 
-    if (saved) {
-      this.formData = {
-        ...this.formData,
-        ...JSON.parse(saved)
-      };
-      toast.info("Restored previous form data."); // ✅ use the correct instance
+      return required.every(key => {
+        const value = this.formData[key];
+
+        // For files, ensure it's a File object
+        if (key.endsWith('_img')) {
+          return value instanceof File;
+        }
+
+        // Everything else must be truthy
+        return value !== null && value !== '' && value !== undefined;
+      });
     }
   },
   methods: {
-  getImageUrl(fileName) {  
+    openModal() {
+      this.showModal = true;
+      document.body.classList.add('modal-open');
+    },
+    closeModal() {
+      this.showModal = false;
+      document.body.style.overflow = '';
+    },
+    handleAgree() {
+      this.closeModal();
+      // Proceed with application
+    },
+    formatDateToMySQL(date) {
+      if (!date) return null;
+      const d = new Date(date);
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    },
+    // Disable dates that are not at least 7 days ahead
+    isInvalidDate(date) {
+      const today = new Date();
+      const sevenDaysFromNow = new Date();
+      sevenDaysFromNow.setDate(today.getDate() + 7);
+      return date < sevenDaysFromNow;
+    },
+    // Apply custom style for valid/invalid dates
+    customDateClass(date) {
+      const today = new Date();
+      const sevenDaysFromNow = new Date();
+      sevenDaysFromNow.setDate(today.getDate() + 7);
+      return date >= sevenDaysFromNow ? 'valid-date' : 'invalid-date';
+    },
+    getImageUrl(fileName) {  
     return new URL(`/src/assets/images/${fileName}`, import.meta.url).href;
     },
-      getPreviewUrl(file) {
+    getPreviewUrl(file) {
       return file && file.type.startsWith('image/') ? URL.createObjectURL(file) : '';
     },
-      preventNumbers(e) {
+    preventNumbers(e) {
       const char = String.fromCharCode(e.keyCode);
       if (/\d/.test(char)) e.preventDefault();
     },
@@ -444,17 +503,23 @@ export default {
       if (!/\d/.test(char)) e.preventDefault();
     },
     handleFileUpload(event, field) {
-      const file = event.target.files[0];
-      if (file) this.formData[field] = file;
-    },
-    removeFile(field) {
-      this.formData[field] = null;
-      this.toast.info("File removed.");
-    },
-    isImage(file) {
-      return file && typeof file.type === "string" && file.type.startsWith("image/");
-    },
-    openPreview(field) {
+    const file = event.target.files[0];
+    if (file) {
+      this.formData[field] = file;
+      event.target.value = ''; // Reset input
+    }
+  },
+  
+  removeFile(field) {
+    this.formData[field] = null;
+    this.toast.info("File removed.");
+  },
+  
+  isImage(file) {
+    return file && typeof file.type === "string" && file.type.startsWith("image/");
+  },
+  
+  openPreview(field) {
     const file = this.formData[field];
     if (!file || !this.isImage(file)) return;
 
@@ -464,6 +529,16 @@ export default {
       this.preview.visible = true;
     };
     reader.readAsDataURL(file);
+  },
+  
+  handleLabelClick(field, event) {
+    if (this.formData[field]) {
+      // Only prevent default if we're previewing
+      event.preventDefault();
+      event.stopPropagation();
+      this.openPreview(field);
+    }
+    // Otherwise let the default file input behavior occur
   },
   validateFile(file, type = 'image') {
     if (!file) return false;
@@ -516,20 +591,54 @@ export default {
         ['address', !!f.address]
       ]
       };
-
       const failed = [];
       for (const group of Object.values(validations)) {
         for (const [field, valid] of group) {
           if (!valid) failed.push(field);
         }
       }
-
       if (failed.length) {
         console.warn("Validation failed for:", failed);
         return false;
       }
-
       return true;
+      },
+      resetForm() {
+      this.formData = {
+        first_name: '',
+        middle_name: '',
+        surname: '',
+        full_name: '',
+        email: '',
+        sex: '',
+        birthdate: null,
+        age: null,
+        address: '',
+        contact_number: '',
+        civil_status: '',
+        employment_status: '',
+        parent_guardian: '',
+        types_of_disability: '',
+        bloodType: '',
+        education: '',
+        philhealth_no: '',
+        Schedule: null,
+
+        // ✅ Reset documents
+        birthcert_img: null,
+        brgycert_img: null,
+        votersreg_img: null,
+        govissue_img_1: null,
+        govissue_img_2: null,
+        ['1x1_img']: null
+      };
+
+      // ✅ Reset preview (if you use it)
+      this.preview = {
+        visible: false,
+        file: null,
+        images: []
+      };
     },
     async submitForm() {
       if (!this.validateAllFields()) {
@@ -538,13 +647,20 @@ export default {
       }
 
       const formData = new FormData();
-      Object.entries(this.formData).forEach(([key, value]) => {
+      const formattedData = {
+        ...this.formData,
+        birthdate: this.formatDateToMySQL(this.formData.birthdate),
+        Schedule: this.formatDateToMySQL(this.formData.Schedule)
+      };
+
+      Object.entries(formattedData).forEach(([key, value]) => {
         formData.append(key, value);
       });
 
       try {
         await axios.post("http://localhost:4000/api/applicants/pending", formData);
         this.toast.success("Application submitted successfully!");
+        this.resetForm(); // ✅ Reset after success
       } catch (err) {
         console.error("Submission error:", err);
         this.toast.error("Submission failed. Please try again.");
@@ -563,6 +679,8 @@ min-height: 100vh;
 
 /* Hero Section */
 .hero-section {
+margin-top: clamp(45px, 11vh, 90px); 
+padding: clamp(20px, 5vh, 40px) clamp(0px, 0vw, 40px); 
 position: relative;
 height: 40vh;
 display: flex;
@@ -756,11 +874,26 @@ flex-wrap: wrap;
 }
 
 /* Match Datepicker to multiselect style */
-/* Wrapper stays flexible */
+.Sched-row {
+  margin-top: 15vh;
+  width: 20%;
+  position: relative; 
+  left: -33%; /* Adjust this negative value to move left */
+  transform: translateX(-20px); /* Fine-tune positioning */
+}
+
+/* Date picker styling */
 .custom-datepicker {
   width: 100% !important;
   font-size: 1vw !important;
   box-sizing: border-box;
+  margin-left: -10px; /* Additional left adjustment */
+}
+
+/* For the calendar popup alignment */
+.v3dp__popout {
+  left: 0 !important;
+  transform: none !important;
 }
 
 /* Target the actual <input> inside the datepicker */
@@ -842,7 +975,7 @@ padding: 2vh 0;
 font-size: 1.8vw;
 border-radius: 0.5vw;
 cursor: pointer;
-margin-top: 2vh;
+margin-top: 10vh;
 transition: background-color 0.3s;
 }
 
@@ -883,6 +1016,16 @@ object-fit: contain;
 
 .upload-label:hover {
   color: #2196f3; /* bright blue */
+}
+
+.valid-date {
+  background-color: #e0ffe0 !important;
+  color: #1a8700 !important;
+}
+
+.invalid-date {
+  background-color: #ffe0e0 !important;
+  color: #c70000 !important;
 }
 
 /* Media Queries */
@@ -973,5 +1116,47 @@ input {
 .submit-btn {
   font-size: 5vw;
 }
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-wrapper {
+  max-height: 90vh;
+  width: 90%;
+  max-width: 800px;
+  margin: 0 auto;
+  position: relative; /* Add this */
+  top: auto; /* Reset any inherited positioning */
+  left: auto;
+  transform: none; /* Reset any transforms */
+}
+
+/* Update your card link to look clickable */
+.card-text-link {
+  cursor: pointer;
+  text-decoration: none;
+}
+
+/* Prevent scrolling when modal is open */
+body.modal-open {
+  overflow: hidden;
+}
+
 }
 </style>
+
+<!-- <style>
+body.modal-open {
+  overflow: hidden;
+}
+</style> -->

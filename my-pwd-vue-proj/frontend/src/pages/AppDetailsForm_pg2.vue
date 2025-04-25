@@ -14,6 +14,13 @@
 
         <!-- Body Section -->
         <main class="form-body">
+
+          <!-- PWD ID (always read-only) -->
+          <div class="form-group">
+            <label>PWD ID:</label>
+            <input type="text" class="text-field" :value="userData.pwd_id" readonly />
+          </div>
+
           <!-- First Name -->
           <div class="form-group">
             <label>First Name:</label>
@@ -24,14 +31,6 @@
               <input type="text" class="text-field" :value="userData.first_name" readonly />
             </template>
           </div>
-
-          <!-- PWD ID (always read-only) -->
-          <div class="form-group">
-            <label>PWD ID:</label>
-            <input type="text" class="text-field" :value="userData.pwd_id" readonly />
-          </div>
-
-
 
           <!-- Transfer From -->
           <div class="form-group">

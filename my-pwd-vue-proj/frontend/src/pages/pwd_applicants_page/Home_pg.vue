@@ -1,7 +1,7 @@
 <template>
   <div class="home-bg-container">
     <!-- Background Image -->
-    <Header class="NavBar" />
+
     <img :src="getImageUrl('LasPinasHomePg_Latest.png')" alt="Home Background" class="home-bg" />
     <!-- Sub Container for Grids -->
     <div class="content-wrapper">
@@ -42,7 +42,12 @@
           <div class="info-text">
             <h2 class="get-to-know-header">GET TO KNOW US</h2>
             <p class="get-to-know-paragraph">Key officials and contact information</p>
-            <button class="view-button">View</button>
+            <router-link 
+              to="/pwd/GetToKnowUs" 
+              class="view-button"
+            >
+              View
+            </router-link>
           </div>
         </div>
       </div>
@@ -82,7 +87,12 @@
               <p class="benefits-text">
                 PWDs in the Philippines enjoy certain discounts and privileges under RA 10754
               </p>
-              <button class="view-btn">View</button>
+              <router-link 
+              to="/pwd/benefits" 
+              class="view-button"
+              >
+                View
+              </router-link>
             </div>
           </div>
 
@@ -106,16 +116,18 @@
           <!-- How to Apply Card -->
           <div class="info-card-section">
             <div class="card-header">HOW TO APPLY?</div>
-            <p class="card-text">CLICK HERE TO VIEW REQUIREMENTS</p>
+            <router-link to="/pwd/guidelines" class="card-text-link">
+              <p class="card-text">CLICK HERE TO VIEW REQUIREMENTS</p>
+            </router-link>
             <img :src="getIconUrl('how-to-apply-icon.png')" alt="How to Apply" class="card-icon-HowToApp" />
           </div>
 
           <!-- Apply Now Card -->
           <div class="info-card-section">
             <div class="card-header">APPLY NOW</div>
-            <router-link to="/pwd/applications" class="card-text-link">
-              <p class="card-text">CLICK HERE TO APPLY</p>
-            </router-link>
+            <button class="card-text-btn" @click="openModal">
+              <span class="card-text">CLICK HERE TO APPLY</span>
+            </button>
             <img :src="getIconUrl('apply-now-icon.png')" alt="Apply Now" class="card-icon-AppNow" />
           </div>
 
@@ -125,28 +137,57 @@
             <p class="card-text">CLICK HERE TO RENEW</p>
             <img :src="getIconUrl('renew-here-icon.png')" alt="Renew" class="card-icon-RenewNow" />
           </div>
-        </div>
-       
+
+          <div v-if="showModal" class="modal-overlay" @click.self="closeModal">
+            <div class="modal-wrapper">
+              <TermsAndConditionModal
+                @close="closeModal"
+                @agree="handleAgree"
+              />
+            </div>
+          </div>
+
       </div>
     </div>
   </div>
+</div>
 </template>
 
 
 <script>
 import Header from '@/components/Header.vue';
-import Footer from '@/components/Footer.vue';
+import TermsAndConditionModal from '@/components/modals/TermsAndConditionModal.vue';
 
 export default {
   components: {
     Header,
+    TermsAndConditionModal
   },
   data() {
     return {
+      showModal: false
       // Data properties can be added here if needed
     };
   },
   methods: {
+    handleAgree() {
+    this.closeModal();
+    this.$router.push('/pwd/applications');
+    // No need for scrollToTop here since modal handles it
+    },
+    openModal() {
+      this.showModal = true;
+      document.body.classList.add('modal-open');
+    },
+    closeModal() {
+      this.showModal = false;
+      document.body.classList.remove('modal-open');
+    },
+    handleAgree() {
+      this.closeModal();
+      // Navigate to applications page after agreement
+      this.$router.push('/pwd/applications');
+    },
     getImageUrl(fileName) {
       return new URL(`/src/assets/images/${fileName}`, import.meta.url).href;
     },
@@ -166,7 +207,7 @@ export default {
     console.log("✅ Home_pg.vue has been loaded!");
   }
 };
-</script>
+</script>           
 
 <style scoped>
 /* ✅ Main Container */
@@ -339,7 +380,7 @@ export default {
 /* ✅ View Button */
 .view-button {
   position: absolute;
-  bottom: 2vh;
+  bottom: 5vh;
   left: 50%;
   transform: translateX(-50%);
   background-color: rgba(255, 255, 255, 0.4);
@@ -350,6 +391,8 @@ export default {
   border-radius: 1vw;
   cursor: pointer;
   z-index: 3;
+  text-decoration: none;
+  font-family: 'Segoe UI', sans-serif;
 }
 
 /* ✅ Secondary Section */
@@ -707,6 +750,9 @@ export default {
 
 .card-text-link {
   text-decoration: none;
+  border: none; /* Removes default border */
+  background: none; /* Removes default button background */
+  padding: 0;
 }
 
 .card-text-link .card-text {
@@ -719,4 +765,45 @@ export default {
   cursor: pointer;
 }
 
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.info-card-section > .card-text-btn {
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+/* Targets ONLY the text inside the button */
+.info-card-section > .card-text-btn > .card-text {
+  font-family: 'Barlow', sans-serif;
+  font-weight: 600;
+  font-size: 1.2rem;
+  text-decoration: underline;
+  color: #000;
+  text-transform: uppercase;
+  margin-bottom: 2.5vh; /* Remove default margins */
+  display: inline-block; /* Better for click area */
+}
+
+/* Hover effect ONLY on this text */
+.info-card-section > .card-text-btn:hover > .card-text {
+  color: #066aff;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+
 </style>
+

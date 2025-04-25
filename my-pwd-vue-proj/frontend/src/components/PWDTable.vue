@@ -58,9 +58,6 @@ export default {
   }
 };
 </script>
-
-
-
   
   <style scoped>
   /* Table Card */
@@ -75,7 +72,7 @@ export default {
     display: flex;
     flex-direction: column;
     padding-bottom: 15px;
-    height: calc(100vh - 230px); 
+    height: calc(100vh - 20vh);
     min-height: 300px;
   }
   
@@ -84,11 +81,11 @@ export default {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 10px;
+    margin-bottom: 1vw;
   }
   
   .table-title {
-    font-size: 28px;
+    font-size: 2vw;
     font-weight: bold;
     color: black;
   }
@@ -97,13 +94,14 @@ export default {
   .table-wrapper {
     flex-grow: 1; /* ✅ Allows table to expand naturally */
     overflow-y: auto; /* ✅ Enables scrolling only if needed */
-    max-height: calc(100vh - 450px); /* ✅ Ensures it adapts dynamically */
+    max-height: calc(100vh - 30vh);
   }
   
   table {
     width: 98%;
-    font-size: 16px;
+    font-size: 1.1vw;
     border-collapse: collapse;
+    min-width: 600px;
   }
   
   /* position: sticky; top: 0; z-index: 1; */
@@ -115,24 +113,23 @@ export default {
     color: #707680;
     font-weight: bold;
     text-align: left;
-    padding: 12px 15px; /* ✅ Controls space around metadata */
-    border-bottom: 3px solid #ededed;
+    padding: 1vw 1.5vw; /* ✅ Controls space around metadata */
+    border-bottom: 0.3vw solid #ededed;
     width: auto; /* ✅ Ensures columns adapt dynamically */
     white-space: nowrap; /* ✅ Prevents text from wrapping */
   }
   
   td {
-    color: #a6a6a6;
-    padding: 12px 15px; /* ✅ Matches header padding to keep alignment */
-    border-bottom: 1px solid #ededed;
-  }
+  color: #a6a6a6;
+  padding: 1vw 1.5vw;
+  border-bottom: 0.1vw solid #ededed;
+}
 
   /* Adjust column widths manually (Optional) */
-th:nth-child(1), td:nth-child(1) { width: 30%; } /* Name Column */
-th:nth-child(2), td:nth-child(2) { width: 20%; } /* Email Column */
-th:nth-child(3), td:nth-child(3) { width: 12%; } /* Age Column */
-th:nth-child(4), td:nth-child(4) { width: 5%; } /* Gender Column */
-
+th:nth-child(1), td:nth-child(1) { width: 30%; }
+th:nth-child(2), td:nth-child(2) { width: 20%; }
+th:nth-child(3), td:nth-child(3) { width: 12%; }
+th:nth-child(4), td:nth-child(4) { width: 5%; }
 
   </style>
   

@@ -8,10 +8,24 @@
 
     <!-- Navigation Links -->
     <nav class="nav-links">
-      <a href="#" class="nav-item">Home</a>
-      <a href="#" class="nav-item">Contact Us</a>
-    </nav>
+      <router-link
+        to="/pwd/home"
+        class="nav-item"
+        @click.native="scrollToTop"
+      >
+        Home
+      </router-link>
+      
+      <router-link to="/pwd/contact-us" class="nav-item">
+        Contact Us
+      </router-link>
 
+      <router-link to="/pwd/dataprivacy" class="nav-item">
+        Data Privacy
+      </router-link>
+
+    </nav>
+    
     <!-- Right Section -->
     <div class="header-right">
       <div class="search-bar">
@@ -32,18 +46,25 @@ export default {
     };
   },
   mounted() {
-  window.addEventListener('scroll', this.handleScroll);
+    window.addEventListener('scroll', this.handleScroll);
   },
   beforeUnmount() {
     window.removeEventListener('scroll', this.handleScroll);
   },
   methods: {
-  handleScroll() {
-    this.isScrolled = window.scrollY > 0;
+    handleScroll() {
+      this.isScrolled = window.scrollY > 0;
+    },
+    scrollToTop() {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth',
+      });
     }
   },
 };
 </script>
+
 
 
 
@@ -62,6 +83,7 @@ export default {
   padding: 13px 20px;
   height: 60px;
   transition: background-color 0.3s, color 0.3s;
+  padding: clamp(10px, 1.7vh, 30px) clamp(15px, 2vw, 30px); 
 }
 
 /* ✨ Scrolled Header Styles */
@@ -82,7 +104,7 @@ export default {
   font-weight: 700;
   text-decoration: none;
   transition: color 0.3s, background-color 0.3s;
-  padding-right: 50px;
+  padding-right: 30px;
 }
 
 /* ✅ Nav Link Hover (Both States) */
@@ -103,7 +125,7 @@ export default {
 .header-left {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 15px;
 }
 
 .header-icon {
@@ -139,7 +161,7 @@ export default {
   background-color: white;
   position: relative;
   margin-left: 0px;
-  margin-right: 40px;
+  margin-right: 15px;
 }
 
 .search-icon {
@@ -162,7 +184,8 @@ export default {
 
 .nav-links {
   display: flex;
-  font-size: 20px;
+  font-size: 15px;
+  margin-left: 15vw;
 }
 </style>
 

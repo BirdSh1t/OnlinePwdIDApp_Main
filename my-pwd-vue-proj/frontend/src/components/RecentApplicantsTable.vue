@@ -12,16 +12,64 @@
               <th>Disability Type</th>
             </tr>
           </thead>
-          <tbody>
-            <!-- Add applicant rows dynamically -->
+
+          <!-- ✅ Use transition-group with a key for animation -->
+          <tbody is="transition-group" name="fade">
+            <tr
+              v-for="(applicant, index) in recentApplicants"
+              :key="applicant.full_name + index"
+              :class="{ highlight: applicant.isNew }"
+            >
+              <td>{{ applicant.full_name || applicant.fullName }}</td>
+              <td>{{ applicant.age }}</td>
+              <td>{{ applicant.types_of_disability || applicant.disability }}</td>
+            </tr>
           </tbody>
         </table>
       </div>
     </div>
   </template>
   
+  <script>
+  export default {
+    name: "RecentApplicantsTable",
+  
+    // Robust prop declaration with validation
+    props: {
+      recentData: {
+        type: Array,
+        required: true
+      }
+    },
+  
+    data() {
+      return {
+        recentApplicants: [],
+        socket: null
+      };
+    },
+  
+    watch: {
+      // Sync parent prop to local copy
+      recentData: {
+          immediate: true,
+          handler(newVal) {
+          this.recentApplicants = [...newVal];
+        }
+      }
+    },
+    methods: {
+    // ⏳ Helper to filter by 48 hours
+    beforeUnmount() {
+      if (this.socket) this.socket.close();
+      }
+    }
+  };
+  </script>
+  
+  
+  
   <style scoped>
-
 
   /* Table Card */
   .table-card {
@@ -36,62 +84,100 @@
   padding-bottom: 15px;
   width: 50%; /* ✅ Takes 50% of its parent container */
   max-width: 480px;
-  min-width: 300px; 
+  min-width: 150px; 
   padding-top: 10px;
 }
 
   
-  /* Table Header */
-  .table-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-    padding-left: 10px;
-  }
-  
+/* Table Header */
+.table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1vw;
+  padding-left: 1vw;
+}
+
+.table-title {
+  font-size: 2vw;
+  font-weight: bold;
+  color: black;
+}
+
+/* Table Styling */
+.table-wrapper {
+  flex-grow: 1;
+  overflow-y: auto;
+  max-height: calc(100vh - 30vh);
+}
+
+table {
+  width: 100%;
+  font-size: 1.1vw;
+  border-collapse: collapse;
+  min-width: 200px;
+  max-width: 600px;
+}
+
+th {
+  background: white;
+  top: 0;
+  z-index: 1;
+  position: sticky;
+  color: #707680;
+  font-weight: bold;
+  text-align: left;
+  padding: 1vw 1.5vw;
+  border-bottom: 0.3vw solid #ededed;
+  width: auto;
+  white-space: nowrap;
+}
+
+td {
+  color: #a6a6a6;
+  padding: 1vw 1.5vw;
+  border-bottom: 0.1vw solid #ededed;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Column widths */
+th:nth-child(1), td:nth-child(1) { width: 20%; }
+th:nth-child(2), td:nth-child(2) { width: 10%; }
+th:nth-child(3), td:nth-child(3) { width: 5%; }
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 768px) {
   .table-title {
-    font-size: 28px;
-    font-weight: bold;
-    color: black;
-  }
-  
-  /* Table Styling */
-  .table-wrapper {
-    flex-grow: 1; /* ✅ Allows table to expand naturally */
-    overflow-y: auto; /* ✅ Enables scrolling only if needed */
-    max-height: calc(100vh - 450px); /* ✅ Ensures it adapts dynamically */
-  }
-  
-  table {
-    width: 98%;
-    font-size: 16px;
-    border-collapse: collapse;
-  }
-  
-  th {
-    background: white;
-    color: #707680;
-    font-weight: bold;
-    text-align: left;
-    padding: 12px 15px; /* ✅ Adjusted spacing */
-    border-bottom: 2px solid #ededed;
-    width: auto;
-    white-space: nowrap; /* ✅ Prevents text from wrapping */
-  }
-  
-  td {
-    color: #a6a6a6;
-    padding: 12px 15px; 
-    border-bottom: 1px solid #ededed;
-    white-space: nowrap; /* ✅ Prevents breaking text */
-    overflow: hidden; 
-    text-overflow: ellipsis; 
+    font-size: 5vw;
   }
 
-    th:nth-child(1), td:nth-child(1) { width: 30%; } /* Name Column */
-    th:nth-child(2), td:nth-child(2) { width: 20%; } /* Age Column */
-    th:nth-child(3), td:nth-child(3) { width: 5%; } /* Disability Type Column */
+  table {
+    font-size: 3.5vw;
+  }
+
+  th, td {
+    padding: 3vw 2vw;
+  }
+}
+
+
+
+/* .fade-enter-active,
+.fade-leave-active {
+  transition: all 0.5s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+  .highlight {
+    background-color: #d4f8d4; 
+    transition: background-color 1.5s ease;
+  } */
 
   </style>
   

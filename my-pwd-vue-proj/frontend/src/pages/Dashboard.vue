@@ -38,16 +38,10 @@
       </div>
     </div>
 
-    
-    <!-- Tables Section -->
-    <!-- <div class="tables-container">
-      <PWDTable :data="filteredData" />
-      <RecentApplicantsTable />
-    </div> -->
     <!-- Tables Section -->
     <div class="tables-container">
       <PWDTable :data="filteredData" />
-      <RecentApplicantsTable :recentData="recentApplicants" />
+      <RecentApplicantsTable :recentData="recentApplicants" @refresh-recent="fetchRecentApplicants" />
     </div>
   </div>
 </template>
@@ -78,6 +72,22 @@ export default {
     };
   },
   methods: {
+    async fetchPendingApplicationsCount() {
+      try {
+        const res = await axios.get('http://localhost:4000/api/applicants/pending/count');
+        this.processingApplications = res.data.count;
+      } catch (err) {
+        console.error('Failed to fetch pending applications count:', err);
+      }
+    },
+    async fetchRecentApplicants() {
+      try {
+        const res = await axios.get("http://localhost:4000/api/applicants/pending/recent");
+        this.recentApplicants = res.data;
+      } catch (err) {
+        console.error("Failed to fetch recent applicants:", err);
+      }
+    },
     getIconUrl(fileName) {
       return new URL(`/src/assets/icons/${fileName}`, import.meta.url).href;
     },
@@ -99,45 +109,59 @@ export default {
     }
   },
   async mounted() {
-    try {
-      const res = await axios.get("http://localhost:4000/api/users?archived=0");
-      this.users = res.data;
-      this.filteredData = res.data; // set this too!
-      console.log("Setting filteredData in Dashboard.vue:", this.filteredData);
-      console.log("Initial fetched data:", res.data[0]); // See if address exists
-      this.recentApplicants = res.data.slice(-5);//shows how many data to display
+    this.fetchRecentApplicants();
+    this.fetchPendingApplicationsCount(); 
 
-      this.totalApplicants = res.data.length;
-      this.walkInApplicants = res.data.filter(u => u.status === "Walk-in").length;
-      this.onlineApplicants = res.data.filter(u => u.status === "Online").length;
-      this.processingApplications = res.data.filter(u => u.status === "Processing").length;
+    try {
+    const res = await axios.get("http://localhost:4000/api/users?archived=0");
+    this.users = res.data;
+    this.filteredData = res.data;
+    this.totalApplicants = res.data.length;
+    this.walkInApplicants = res.data.filter(u => u.status === "Walk-in").length;
+    this.onlineApplicants = res.data.filter(u => u.status === "Online").length;
     } catch (err) {
       console.error("Initial fetch error:", err);
     }
 
-    // WebSocket setup
+    // ✅ WebSocket connection
     this.socket = new WebSocket("ws://localhost:4000");
 
-      this.socket.onmessage = (event) => {
-      const message = JSON.parse(event.data);
-      console.log("WebSocket update received:", message.data[0]);
-      console.log("WebSocket message:", message);
-      console.log("User sample:", message.data?.[0]);
+    this.socket.addEventListener("message", (event) => {
+      const msg = JSON.parse(event.data);
 
-      if (message.event === "update-active") {
-        this.users = message.data;
-        this.filteredData = [...message.data]; // ✅ force reactive update
-        this.recentApplicants = message.data.slice(-5);
-      }
-    };
-  },
+      if (msg.event === "recent-applicant") {
+        const newEntry = { ...msg.data, isNew: true };
+
+        this.recentApplicants.unshift(newEntry);
+        if (this.recentApplicants.length > 10) this.recentApplicants.pop();
+
+          // Optional animation flag
+          setTimeout(() => {
+            newEntry.isNew = false;
+          }, 3000);
+        }
+
+        if (msg.event === "update-active") {
+          this.users = msg.data;
+          this.filteredData = [...msg.data];
+        }
+
+        if (msg.event === "online-applicant-count") {
+          this.onlineApplicants = msg.data.count;
+        }
+
+        if (msg.event === "processing-applications-count") {
+        this.processingApplications = msg.data.count;
+        }
+      });
+    },
   beforeUnmount() {
     if (this.socket) this.socket.close();
   },
   watch: {
   filteredData(newVal) {
     console.log("filteredData changed:", newVal);
-  }
+    }
   }
 };
 </script>
@@ -256,6 +280,22 @@ export default {
   font-size: 14px;
   color: #a6a6a6;
   font-weight: 400;
+}
+
+    /* ✅ Fade transition */
+.fade-enter-active,
+.fade-leave-active {
+  transition: all 0.5s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+.highlight {
+  background-color: #d4f8d4;
+  transition: background-color 2s ease;
 }
 </style>
 

@@ -8,29 +8,44 @@
     <!-- Table Card -->
     <div class="table-card">
 
-      <!-- Filters Section -->
-      <div class="table-filters">
+          <div class="table-filters">
+        <!-- Sex Filter -->
         <multiselect
           v-model="selectedFilters[0]"
           :options="sexOptions"
-          class="custom-dropdown"
+          track-by="value"
+          label="label"
           placeholder="Select Sex"
+          :clear-on-select="false"
+          :close-on-select="true"
+          :allow-empty="false"
+          @input="onFilterInput('sex', $event)"
+          class="custom-dropdown"
         />
+
+        <!-- Status Filter -->
         <multiselect
           v-model="selectedFilters[1]"
           :options="statusOptions"
-          class="custom-dropdown"
+          track-by="value"
+          label="label"
           placeholder="Select Status"
+          :clear-on-select="false"
+          :close-on-select="true"
+          :allow-empty="false"
+          @input="onFilterInput('status', $event)"
+          class="custom-dropdown"
         />
 
         <!-- Date Picker -->
         <Datepicker
           v-model="selectedDate"
           :enable-time-picker="false"
-          :placeholder="'Select Date'"
+          placeholder="Select Date"
           class="custom-date-picker"
         />
-        </div>
+      </div>
+
         
         <!-- Table -->
         <div class="table-wrapper">
@@ -100,37 +115,62 @@ export default {
     Datepicker
   },
   data() {
-    return {
-      selectedFilters: ["All", "All"],
-      sexOptions: ["All", "Male", "Female"],
-      statusOptions: ["All", "Valid", "Invalid"],
+  return {
+      // now each option is an object:
+      sexOptions: [
+        { label: "All",   value: "all" },
+        { label: "Male",  value: "male" },
+        { label: "Female",value: "female" },
+      ],
+      statusOptions: [
+        { label: "All",   value: "all" },
+        { label: "Valid", value: "valid" },
+        { label: "Invalid", value: "invalid" },
+      ],
+      // selectedFilters holds two objects (sex, status)
+      selectedFilters: [
+        { label: "All", value: "all" },
+        { label: "All", value: "all" },
+      ],
       selectedDate: null,
+      tableData: [], 
       tableData: [],
       activeIndex: null,
       socket: null,
       searchQuery: ""
-    };
-  },
-  computed: {
-    filteredTableData() {
+  };
+},
+computed: {
+  filteredTableData() {
+      const [sexFilter, statusFilter] = this.selectedFilters.map(f => f.value);
       return this.tableData.filter(row => {
-        const sexMatch =
-          this.selectedFilters[0] === "All" ||
-          row.sex.toLowerCase() === this.selectedFilters[0].toLowerCase();
-        const statusMatch =
-          this.selectedFilters[1] === "All" ||
-          row.status.toLowerCase() === this.selectedFilters[1].toLowerCase();
-        const dateMatch =
-          !this.selectedDate ||
-          (row.date_issued &&
-            new Date(row.date_issued).toDateString() ===
-              new Date(this.selectedDate).toDateString());
+        const sex   = row.sex?.toLowerCase();
+        const status= row.status?.toLowerCase();
+        const dateOk= !this.selectedDate ||
+          new Date(row.date_issued).toDateString() ===
+          new Date(this.selectedDate).toDateString();
 
-        return sexMatch && statusMatch && dateMatch;
+        return (
+          (sexFilter === "all" || sex === sexFilter) &&
+          (statusFilter === "all" || status === statusFilter) &&
+          dateOk
+        );
       });
     }
   },
   methods: {
+    onFilterInput(type, option) {
+        // find index: sex → 0, status → 1
+      const idx = type === "sex" ? 0 : 1;
+
+        // if same value clicked twice, reset to “All”
+      if (this.selectedFilters[idx].value === option.value) {
+        this.$set(this.selectedFilters, idx, { label: "All", value: "all" });
+      } else {
+          // otherwise just store the newly selected
+        this.$set(this.selectedFilters, idx, option);
+      }
+    },
     handleUpdated() {
     this.fetchDatabaseData(); // Re-fetch data after archive
     },

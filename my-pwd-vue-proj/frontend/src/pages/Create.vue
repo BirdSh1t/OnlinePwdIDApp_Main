@@ -752,14 +752,15 @@ export default {
     },
   },
   mounted() {
-  this.socket = new WebSocket("ws://localhost:4000");
+    this.fetchAllRecords();
 
-  this.socket.onmessage = (event) => {
-    const message = JSON.parse(event.data);
-    if (message.event === "update-active") {
-      this.allRecords = message.data; // optional if you display records
+    this.socket = new WebSocket("ws://localhost:4000");
+    this.socket.addEventListener("message", (event) => {
+      const message = JSON.parse(event.data);
+      if (message.event === "update-active") {
+        this.allRecords = message.data;
       }
-    };
+    });
   },
   beforeUnmount() {
     if (this.socket) this.socket.close();

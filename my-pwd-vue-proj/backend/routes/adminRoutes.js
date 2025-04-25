@@ -216,6 +216,7 @@ router.get("/users/page2/:pwd_id", async (req, res) => {
 });
 
 
+const getFilename = (path = '') => path.split('/').pop();
 // Display image metadata for AppDetailsForm_pg3 /////////////////////
 router.get("/users/images/:pwd_id", async (req, res) => {
   try {
@@ -235,7 +236,19 @@ router.get("/users/images/:pwd_id", async (req, res) => {
     const [results] = await pool.promise().query(query, [pwd_id]);
 
     if (results.length > 0) {
-      res.json(results[0]);
+      const baseUrl = `${req.protocol}://${req.get('host')}/api/documents`;
+
+      const row = results[0];
+      const mapped = {
+        '1x1_img': row['1x1_img'] ? `${baseUrl}/1x1_img/${getFilename(row['1x1_img'])}` : '',
+        'votersreg_img': row.votersreg_img ? `${baseUrl}/votersreg_img/${getFilename(row.votersreg_img)}` : '',
+        'birthcert_img': row.birthcert_img ? `${baseUrl}/birthcert_img/${getFilename(row.birthcert_img)}` : '',
+        'brgycert_img': row.brgycert_img ? `${baseUrl}/brgycert_img/${getFilename(row.brgycert_img)}` : '',
+        'govissue_img_1': row.govissue_img_1 ? `${baseUrl}/govissue_img_1/${getFilename(row.govissue_img_1)}` : '',
+        'govissue_img_2': row.govissue_img_2 ? `${baseUrl}/govissue_img_2/${getFilename(row.govissue_img_2)}` : ''
+      };
+
+      res.json(mapped);
     } else {
       res.status(404).json({ error: "Image metadata not found for this PWD ID" });
     }
@@ -244,6 +257,7 @@ router.get("/users/images/:pwd_id", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
 
 
 // PUT endpoint to update user details (triggered from AppDetailsForm_pg1.vue)
@@ -723,53 +737,6 @@ router.delete("/users/:pwd_id", async (req, res) => {
     res.status(500).json({ error: "Failed to delete record" });
   }
 });
-
-
-
-/*********Pending Applicants endpoints*********/
-
-// GET all pending applications
-router.get('/pending', async (req, res) => {
-  const [rows] = await pool.promise().query(`SELECT * FROM pending_applications`);
-  res.json(rows);
-});
-
-// Approve
-router.put('/pending/:id/approve', async (req, res) => {
-  const id = req.params.id;
-
-  // 1. Move to `users` table logic here...
-  // 2. Update application_status = 'approved', evaluated_at = NOW()
-
-  await pool.promise().query(`
-    UPDATE pending_applications 
-    SET application_status = 'approved', evaluated_at = NOW() 
-    WHERE id = ?
-  `, [id]);
-
-  res.sendStatus(200);
-});
-
-// Reject
-router.put('/pending/:id/reject', async (req, res) => {
-  const id = req.params.id;
-  await pool.promise().query(`
-    UPDATE pending_applications 
-    SET application_status = 'rejected', evaluated_at = NOW() 
-    WHERE id = ?
-  `, [id]);
-
-  res.sendStatus(200);
-});
-
-
-
-
-
-
-
-
-
 
 export default router;
 

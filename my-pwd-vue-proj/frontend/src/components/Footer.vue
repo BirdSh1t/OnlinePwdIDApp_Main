@@ -17,19 +17,19 @@
   background-color: #149656;
   color: white;
   font-family: 'barlow', sans-serif;
-   padding: 0.9vh 1.0vw;
-  height: 15vh;
+  padding: 1rem 2rem; /* Use rem for consistent spacing */
   gap: 20px;
 }
-
 .footer-icon img {
   width: 4vw;
   height: auto; /* Adjust the size as needed */
   margin-right: 10px;
+  max-width: 100%;
 }
 
 .footer-text p {
   margin: 0;
   font-size: 14px;
+  max-width: 100%;
 }
 </style>

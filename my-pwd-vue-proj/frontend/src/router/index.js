@@ -12,11 +12,12 @@ import LandingPage from '@/pages/LandingPage.vue';
 import PendingApplicants from '@/pages/PendingApplicants.vue'
 
 //PWD Pages
-import AboutUs from '@/pages/pwd_applicants_page/AboutUs_pg.vue';
+import GetToKnowUs from '@/pages/pwd_applicants_page/GetToKnowUs_pg.vue';
 import Applications from '@/pages/pwd_applicants_page/Applications_pg.vue';
 import Benefits from '@/pages/pwd_applicants_page/Benefits_pg.vue';
 import ContactUs from '@/pages/pwd_applicants_page/ContactUs_pg.vue';
 import Guidelines from '@/pages/pwd_applicants_page/Guidelines_pg.vue';
+import DataPrivacy from '@/pages/pwd_applicants_page/RA_10173.vue';
 
 
 
@@ -57,11 +58,12 @@ const routes = [
     component: PWDLayout,
     children: [
       { path: 'home', name: 'Home', component: Home },
-      { path: 'about-us', name: 'AboutUs', component: AboutUs },
+      { path: 'GetToKnowUs', name: 'Get to know us', component: GetToKnowUs },
       { path: 'applications', name: 'Applications', component: Applications },
       { path: 'benefits', name: 'Benefits', component: Benefits },
       { path: 'contact-us', name: 'ContactUs', component: ContactUs },
-      { path: 'guidelines', name: 'Guidelines', component: Guidelines }
+      { path: 'guidelines', name: 'Guidelines', component: Guidelines },
+      { path: 'dataprivacy', name: 'DataPrivacy', component: DataPrivacy}
     ]
   }  
 ];
