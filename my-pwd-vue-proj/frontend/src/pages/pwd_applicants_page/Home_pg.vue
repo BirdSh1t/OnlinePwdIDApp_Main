@@ -54,7 +54,6 @@
 
       <!-- Mask Overlay -->
       <div class="mask-overlay"></div>
-
       <!-- Secondary Section with Mask and Text -->
       <h1 class="second-image-header">
           Equal Voices, Equal Choices: PWD Support Initiative
@@ -131,13 +130,16 @@
             <img :src="getIconUrl('apply-now-icon.png')" alt="Apply Now" class="card-icon-AppNow" />
           </div>
 
-          <!-- Renew Now Card -->
+          <!-- RENEW NOW BUTTON -->
           <div class="info-card-section">
             <div class="card-header">RENEW NOW</div>
-            <p class="card-text">CLICK HERE TO RENEW</p>
+            <button class="card-text-btn" @click="openRenewModal">
+              <span class="card-text">CLICK HERE TO RENEW</span>
+            </button>
             <img :src="getIconUrl('renew-here-icon.png')" alt="Renew" class="card-icon-RenewNow" />
           </div>
 
+          <!-- Apply Now MODAL -->
           <div v-if="showModal" class="modal-overlay" @click.self="closeModal">
             <div class="modal-wrapper">
               <TermsAndConditionModal
@@ -147,6 +149,14 @@
             </div>
           </div>
 
+          <!-- RENEW MODAL -->
+          <RenewModal 
+            v-if="showRenewModal" 
+            @close="closeRenewModal" 
+            ref="showRenewModal"
+            @confirm="handleConfirmRenew"
+          />
+
       </div>
     </div>
   </div>
@@ -155,25 +165,30 @@
 
 
 <script>
+import axios from 'axios';
+import { useToast } from 'vue-toastification';
 import Header from '@/components/Header.vue';
 import TermsAndConditionModal from '@/components/modals/TermsAndConditionModal.vue';
+import RenewModal from '@/components/modals/RenewModal.vue';
 
 export default {
   components: {
     Header,
-    TermsAndConditionModal
+    TermsAndConditionModal,
+    RenewModal
   },
   data() {
     return {
-      showModal: false
+      toast: useToast(),
+      showModal: false,
+      showRenewModal: false, // Renew modal
       // Data properties can be added here if needed
     };
   },
   methods: {
     handleAgree() {
-    this.closeModal();
-    this.$router.push('/pwd/applications');
-    // No need for scrollToTop here since modal handles it
+      this.closeModal();
+      this.$router.push({ name: 'Applications', query: { mode: 'apply' } });
     },
     openModal() {
       this.showModal = true;
@@ -183,10 +198,49 @@ export default {
       this.showModal = false;
       document.body.classList.remove('modal-open');
     },
-    handleAgree() {
-      this.closeModal();
-      // Navigate to applications page after agreement
-      this.$router.push('/pwd/applications');
+    openRenewModal() {
+      this.showRenewModal = true;
+      document.body.classList.add('modal-open');
+    },
+    closeRenewModal() {
+      this.showRenewModal = false;
+      document.body.classList.remove('modal-open');
+    },
+    async handleConfirmRenew(pwdId) {
+      try {
+        const { data } = await axios.get(`http://localhost:4000/api/check/${pwdId}`);
+
+        if (data.exists) {
+          this.toast.success("PWD ID verified!");
+          window.scrollTo({ top: 0, behavior: 'instant' }); // ⬆️ Scroll to top
+          this.closeRenewModal(); // ✅ Close only on success
+          this.$router.push({ name: 'Applications', query: { mode: 'renew', pwd_id: pwdId } });
+        }
+        else {
+          this.toast.error('PWD ID not found. Please check and try again.');
+          this.pwdId = Array(7).fill('');
+          this.$refs.showRenewModal?.triggerShake?.(); // Make sure modal is ref'd properly
+
+          // Reset input fields
+          this.pwdId = Array(7).fill('');
+
+          // Safe refocus (avoid error if ref is undefined)
+          this.$nextTick(() => {
+            if (this.$refs.squareInputs && this.$refs.squareInputs[0]) {
+              this.$refs.squareInputs[0].focus();
+            }
+          });
+        }
+      } catch (err) {
+        console.error("Error verifying PWD ID:", err);
+        this.toast.error("Server error. Please try again.");
+
+        this.$nextTick(() => {
+          if (this.$refs.squareInputs && this.$refs.squareInputs[0]) {
+            this.$refs.squareInputs[0].focus();
+          }
+        });
+      }
     },
     getImageUrl(fileName) {
       return new URL(`/src/assets/images/${fileName}`, import.meta.url).href;
@@ -686,7 +740,7 @@ export default {
 .card-icon-RenewNow {
   width: 8vw;
   height: auto;
-  margin-top: 1.8rem;
+  margin-top: 1.5rem;
 }
 
 

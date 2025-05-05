@@ -58,7 +58,7 @@
   .gradient-overlay {
     position: absolute;
     inset: 0;
-    background: linear-gradient(90deg, #1dff00, black);
+    background: linear-gradient(90deg, #139402, rgb(10, 77, 21));
     opacity: 0.5;
     z-index: 1;
   }
@@ -77,7 +77,7 @@
   .content-wrapper {
     position: relative;
     z-index: 2;
-    max-width: 850px;
+    max-width: 80%;
     padding: 40px;
     color: white;
     text-align: center;
@@ -96,8 +96,8 @@
   
   .privacy-body {
     text-align: justify;
-    font-size: 1rem;
-    line-height: 1.7;
+    font-size: 1.4rem;
+    line-height: 1.9;
   }
   </style>
   

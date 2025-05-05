@@ -3,14 +3,15 @@
     <div v-if="visible" class="mask-overlay">
       <div class="form-container">
         <!-- Header Section -->
-        <header class="form-header">
-          <img :src="getIconUrl('back_button_grey.png')" alt="Back" class="back-icon" @click="closeForm" />
-          <h2 class="form-title">OTHER DETAILS</h2>
-          <div class="right-header-group">
-            <div class="picture-placeholder"></div>
-            <img :src="getIconUrl('edit_black.png')" alt="Edit" class="edit-icon" @click="toggleEditMode" />
-          </div>
-        </header>
+        <AppDetailsFormHeader
+          :userData="props.userData"
+          :visible="props.visible"
+          :currentPage="props.currentPage"
+          :totalPages="props.totalPages"
+          title="Other Information"
+          @close="closeForm"
+          @toggle-edit="toggleEditMode"
+        />
 
         <!-- Body Section -->
         <main class="form-body">
@@ -89,7 +90,6 @@
               <input type="text" class="text-field" :value="userData.surname" readonly />
             </template>
           </div>
-
 
           <!-- Care Of -->
           <div class="form-group">
@@ -183,17 +183,67 @@
             </template>
           </div>
 
-          <!-- Barangay -->
+          <!-- Occupation -->
           <div class="form-group">
             <label>Occupation:</label>
             <template v-if="isEditMode">
               <input type="text" class="text-field" v-model="formData.occupation" />
             </template>
             <template v-else>
-              <input type="text" class="text-field" :value="userData.barangay" readonly />
+              <input type="text" class="text-field" :value="userData.occupation" readonly />
             </template>
           </div>
-          </main>
+
+            <!-- Civil status -->
+            <div class="form-group">
+            <label>Civil Status:</label>
+            <template v-if="isEditMode">
+              <Multiselect
+                v-model="formData.civil_status"
+                :options="civilStatusOptions"
+                class="custom-multiselect"
+              >
+                <template #caret="{ toggle }">
+                  <img
+                    :src="getIconUrl('drop_down_black.png')"
+                    alt="Dropdown"
+                    class="caret-icon"
+                    @mousedown.prevent
+                    @click.stop="toggle"
+                  />
+                </template>
+              </Multiselect>
+            </template>
+            <template v-else>
+            <input type="text" class="text-field" :value="userData.civil_status" readonly />
+            </template>
+          </div>
+
+            <!-- Employment status -->
+            <div class="form-group">
+            <label>Employment Status:</label>
+            <template v-if="isEditMode">
+              <Multiselect
+                v-model="formData.employment_status"
+                :options="employmentStatusOptions"
+                class="custom-multiselect"
+              >
+                <template #caret="{ toggle }">
+                  <img
+                    :src="getIconUrl('drop_down_black.png')"
+                    alt="Dropdown"
+                    class="caret-icon"
+                    @mousedown.prevent
+                    @click.stop="toggle"
+                  />
+                </template>
+              </Multiselect>
+            </template>
+            <template v-else>
+            <input type="text" class="text-field" :value="userData.employment_status" readonly />
+            </template>
+          </div>
+        </main>
 
         <!-- Footer Section -->
           <footer class="form-footer">
@@ -236,6 +286,7 @@ import Multiselect from "vue-multiselect";
 import "vue-multiselect/dist/vue-multiselect.css";
 import { defineProps, defineEmits } from 'vue';
 import Datepicker from "@vuepic/vue-datepicker";
+import AppDetailsFormHeader from '@/components/AppDetailsFormHeader.vue';
 
 const emit = defineEmits(["close", "prev", "next"]);
 const props = defineProps({
@@ -261,7 +312,9 @@ const isEditMode = ref(false);
 const educationOptions = ["No Formal Education", "Primary", "Secondary", "College", "Vocational", "Postgraduate"];
 const disabilityCauseOptions = ["Birth", "Illness", "Accident", "Others"];
 const assistiveDeviceOptions = ["Cane", "Walker", "Wheelchair", "Hearing Aid", "None"];
-const annotationOptions = ["None", "Requires Assistance", "Pending"];
+const civilStatusOptions = ['Single', 'Married', 'Widow/er', 'Separated', 'Co-Habitation'];
+const employmentStatusOptions = ['Employed', 'Unemployed', 'Retired', 'Resigned', 'Displaced Worker'];
+
 // Editable form data
 const formData = ref({ ...props.userData });
 
@@ -383,7 +436,6 @@ function saveChanges() {
 }
 
 .form-title {
-  margin-top: 27px;
   font-size: 2.0rem; /* ~24px */
   font-weight: bold;
   color: black;
@@ -495,7 +547,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 /* Footer Section */
 .form-footer {
-  margin-top: 0.25em; /* ~20px */
+  margin-top: 1.25em;  /* ~20px */
   display: flex;
   justify-content: right;
   align-items: center;
@@ -504,18 +556,18 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 /* Page Indicator */
 .page-indicator {
-  margin-top: 4.1em;
+  margin-top: 2.5em;
   color: #707680;
   font-size: 0.875rem; /* ~14px */
 }
 
 /* Footer Arrow */
 .footer-arrow {
-  margin-top: 4.8em;
-  width: 1em;  /* ~16px if base is 16px */
+  margin-top: 2.8em; /* ~8px */
+  width: 1em;  
   height: 1em;
   cursor: pointer;
-  filter: grayscale(100%) brightness(40%); /* Make it #707680-ish */
+  filter: grayscale(100%) brightness(40%); 
 }
 
 .flip-horizontal {
@@ -574,6 +626,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 .edit-buttons {
+  margin-top: 0.2em;
   display: flex;
   align-items: center;
   gap: 20px;
@@ -585,7 +638,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   color: lightgray;
   text-decoration: underline;
   cursor: pointer;
-  margin-top: 65px;
 }
 
 .save-btn {
@@ -598,7 +650,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   border-radius: 5px;
   cursor: pointer;
   transition: background-color 0.3s ease;
-  margin-top: 65px;
 }
 
 .save-btn:hover {

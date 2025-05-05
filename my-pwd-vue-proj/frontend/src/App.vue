@@ -33,4 +33,8 @@ html, body, #app, .app-container {
   margin: 0;
   padding: 0;
 }
+
+body.modal-open {
+  overflow: hidden;
+}
 </style>

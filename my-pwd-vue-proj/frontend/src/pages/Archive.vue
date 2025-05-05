@@ -1,8 +1,23 @@
 <template>
   <div class="archive-container">
-    <DashboardHeader title="Archive" />
+    <DashboardHeader title="Pending Applicants" @search="handleSearch" />
 
-    <div class="table-card">
+      <div class="table-card">
+      <div class="table-filters" style="width: 200px;">
+        <Multiselect
+          v-model="selectedSex"
+          :options="sexOptions"
+          label="label"
+          track-by="value"
+          :allow-empty="true"
+          :searchable="false"
+          :clear-on-select="false"
+          :close-on-select="true"
+          placeholder="Filter by Sex"
+          class="custom-dropdown"
+        />
+      </div>
+
       <div class="table-wrapper">
         <table class="data-table">
           <thead>
@@ -11,11 +26,14 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(user, index) in archivedUsers" :key="index">
-              <td>{{ user.user_number }} - {{ user.full_name }}</td>
+            <tr v-if="finalFilteredUsers.length === 0">
+              <td colspan="6" style="text-align: center;">No Match Found</td>
+            </tr>
+            <tr v-for="(user, index) in finalFilteredUsers" :key="index">
+              <td>{{ user.userNumber }} - {{ user.fullName }}</td>
               <td>{{ user.sex }}</td>
-              <td>{{ user.types_of_disability }}</td>
-              <td>{{ formatDate(user.archived_at) }}</td>
+              <td>{{ user.disability }}</td>
+              <td>{{ user.archivedDate }}</td>
               <td>
                 <button class="unarchive-btn" @click="unarchiveUser(user.pwd_id)">
                   Unarchive
@@ -32,60 +50,136 @@
 <script>
 import axios from "axios";
 import DashboardHeader from "@/components/DashboardHeader.vue";
+import Multiselect from "vue-multiselect";
 
 export default {
   name: 'ArchiveTable',
-  components: { DashboardHeader },
+  components: { DashboardHeader, Multiselect },
   data() {
-    return { archivedUsers: [] };
+    return {
+      archivedUsers: [],
+      searchQuery:    '', 
+      filteredData: [],
+      searchAttempted: false,   // new flag
+      selectedSex: null,
+      sexOptions: [
+        { label: 'Male', value: 'Male' },
+        { label: 'Female', value: 'Female' }
+      ]
+    };
+  },
+  computed: {
+    finalFilteredUsers() {
+      let data = this.searchAttempted ? this.filteredData : this.archivedUsers;
+
+      if (this.selectedSex) {
+        data = data.filter(u => u.sex === this.selectedSex.value);
+      }
+
+      return data;
+    }
   },
   methods: {
-    async fetchArchived() {
+    async fetchArchivedUsers() {
       try {
-        const res = await axios.get("http://localhost:4000/api/pwd-forms", { params: { archived: 1 } });
-        this.archivedUsers = res.data;
+        const res = await axios.get("http://localhost:4000/api/users/archive");
+        console.log("Raw archive response:", res.data);
+
+        if (Array.isArray(res.data)) {
+          this.archivedUsers = res.data.map(user => ({
+            userNumber:   user.num_users,
+            fullName:     user.full_name,
+            sex:          user.sex,
+            pwd_id:       user.pwd_id,
+            disability:   user.types_of_disability,
+            archivedDate: this.formatDate(user.archived_at)
+          }));
+          this.filteredData = this.archivedUsers;
+          console.log("Mapped archivedUsers:", this.archivedUsers);
+        } else {
+          console.error("Search API did not return an array:", res.data);
+          this.archivedUsers = [];
+          this.filteredData = [];
+        }
       } catch (err) {
-        console.error("Error fetching archives:", err);
+        console.error("Failed to fetch archive:", err);
       }
     },
+    async handleSearch(query) {
+      this.searchQuery = query;     // keep your query in sync
+      this.searchAttempted = !!query.trim();
+
+      if (!query.trim()) {
+        this.filteredData = [];
+        return;
+      }
+
+    try {
+      const { data } = await axios.get("http://localhost:4000/api/search", {
+        params: { page: "archive", query }
+      });
+
+      console.log("Search API response:", data); // <-- ADD THIS
+
+      if (Array.isArray(data)) {
+        if (data.length === 1 && data[0].noMatch) {
+          this.filteredData = [];
+        } else {
+          this.filteredData = data.map(u => ({
+            userNumber:   u.user_number,
+            fullName:     u.full_name,
+            sex:          u.sex,
+            pwd_id:       u.pwd_id,
+            disability:   u.types_of_disability,
+            archivedDate: this.formatDate(u.archived_at)
+          }));
+        }
+      } else {
+        console.error("Search API did not return an array:", data);
+        this.filteredData = [];
+      }
+
+    } catch (err) {
+      console.error("Search error:", err);
+      this.filteredData = [];
+    }
+  },
     async unarchiveUser(pwd_id) {
       try {
         await axios.put(`http://localhost:4000/api/users/${pwd_id}/unarchive`);
-        //this.archivedUsers = this.archivedUsers.filter(u => u.pwd_id !== pwd_id);
+        // remove locally so UI updates instantly
+        this.archivedUsers = this.archivedUsers.filter(u => u.pwd_id !== pwd_id);
       } catch (err) {
         console.error("Error unarchiving user:", err);
       }
     },
-    formatDate(date) {
-      return new Date(date).toLocaleDateString();
+
+    formatDate(dateStr) {
+      const date = new Date(dateStr);
+      return date.toLocaleDateString("en-US", {
+        year:  "numeric",
+        month: "short",
+        day:   "numeric"
+      });
     }
   },
-  formatDate(dateStr) {
-    if (!dateStr) return "N/A";
-    const date = new Date(dateStr);
-    return isNaN(date) ? "Invalid Date" : date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric"
-    });
-  },
   mounted() {
-    this.fetchArchived();
+    this.fetchArchivedUsers();
 
     this.socket = new WebSocket("ws://localhost:4000");
-
-    this.socket.onmessage = (event) => {
-      const message = JSON.parse(event.data);
-      if (message.event === "update-archived") {
-        this.archivedUsers = message.data;
+    this.socket.onmessage = ({ data }) => {
+      const msg = JSON.parse(data);
+      if (msg.event === "update-archived") {
+        this.fetchArchivedUsers();
       }
     };
   },
-  beforeDestroy() {
-  if (this.socket) this.socket.close();
+  beforeUnmount() {
+    if (this.socket) this.socket.close();
   }
 };
 </script>
+
 
 
 <style scoped>
@@ -121,6 +215,7 @@ export default {
 }
 
 .table-wrapper {
+  margin-top: 10vh;
   position: relative;
   flex-grow: 1;
   overflow-y: auto;
@@ -202,22 +297,40 @@ export default {
   padding-left: 20px;
 }
 
+.custom-dropdown {
+  font-family: 'Segoe UI', sans-serif;
+  font-size: 14px;
+}
+
+/* Custom Dropdown */
+.custom-dropdown {
+  width: 180px;
+  height: 50px;
+  font-family: 'montserrat', sans-serif;
+}
+
+.no-results {
+  text-align: center;
+  font-style: italic;
+  color: #888;
+}
+
+
 .data-table th:nth-child(1),
-.data-table td:nth-child(1) { width: 15%; min-width: 100px; }
+.data-table td:nth-child(1) { width: 15%; }
 
 .data-table th:nth-child(2),
-.data-table td:nth-child(2) { width: 10%; min-width: 80px; }
+.data-table td:nth-child(2) { width: 8%; }
 
 .data-table th:nth-child(3),
-.data-table td:nth-child(3) { width: 10%; min-width: 80px; }
+.data-table td:nth-child(3) { width: 15%; }
 
 .data-table th:nth-child(4),
-.data-table td:nth-child(4) { width: 9%; min-width: 70px; }
+.data-table td:nth-child(4) { width: 9%; }
 
 .data-table th:nth-child(5),
-.data-table td:nth-child(5) { width: 9%; min-width: 10px; }
-
-.data-table td:nth-child(5) {
+.data-table td:nth-child(5) { 
+  width: 9%; 
   text-align: left;
   padding-left: 20px;
   padding-right: 0; /* Optional: remove extra right padding */

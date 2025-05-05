@@ -1,38 +1,40 @@
 <!-- DashboardHeader.vue -->
 <template>
-  <div class="dashboard-header-card">
-    <div class="dashboard-left">
-      <img :src="getIconUrl('menu_bar_black.png')" alt="Dashboard Icon" class="dashboard-icon" />
-      <h1 class="dashboard-title">{{ title }}</h1>
-      <!-- Optional subtitle on the Create page -->
-      <p v-if="$route.path === '/admin/create'" class="create-subtitle">
-        IDNow - PWD Old Members
-      </p>
-    </div>
-
-    <!-- When not on the Create page, show the search bar -->
-    <div v-if="$route.path !== '/admin/create'" class="search-bar">
-      <img :src="getIconUrl('search_black.png')" alt="Search Icon" class="search-icon" />
-      <input
-        type="text"
-        v-model="searchText"
-        placeholder="Search here"
-        @input="onSearch"
-        class="search-input"
-      />
-    </div>
-    <!-- Else show icons if on the Create page -->
-    <div v-else class="icons-container">
-      <img :src="getIconUrl('printer_grey.png')" alt="Printer" class="icon" />
-      <!-- Update this -->
-      <img
-        :src="getIconUrl('new_document_grey.png')"
-        alt="New Document"
-        class="icon"
-        @click="$emit('new-document')"
-      />
-    </div>
+<div class="dashboard-header-card">
+  <div class="dashboard-left">
+    <img :src="getIconUrl('menu_bar_black.png')" alt="Dashboard Icon" class="dashboard-icon" />
+    <h1 class="dashboard-title">
+      {{ $route.path === '/admin/database' ? 'Reports' : title }}
+    </h1>
+    <!-- Optional subtitle on the Create page -->
+    <p v-if="$route.path === '/admin/create'" class="create-subtitle">
+      IDNow - PWD Old Members
+    </p>
   </div>
+
+  <!-- Show search bar on all routes except create -->
+  <div v-if="$route.path !== '/admin/create'" class="search-bar">
+    <img :src="getIconUrl('search_black.png')" alt="Search Icon" class="search-icon" />
+    <input
+      type="text"
+      v-model="searchText"
+      placeholder="Search here"
+      @input="onSearch"
+      class="search-input"
+    />
+  </div>
+
+  <!-- Show icons only on the Create page -->
+  <div v-if="$route.path === '/admin/create'" class="icons-container">
+    <img :src="getIconUrl('printer_grey.png')" alt="Printer" class="icon" />
+    <img
+      :src="getIconUrl('new_document_grey.png')"
+      alt="New Document"
+      class="icon"
+      @click="$emit('new-document')"
+    />
+  </div>
+</div>
 </template>
 
 <script>
@@ -43,7 +45,7 @@ export default {
   },
   data() {
     return {
-      searchText: ""
+      searchText: "",
     };
   },
   methods: {
@@ -56,6 +58,9 @@ export default {
     },
     async triggerNewDocument() {
     this.$emit("new-document-clicked"); // Notify AdminLayout or Create page
+    },
+    clearSearch() {
+    this.searchText = '';
     }
   }
 };

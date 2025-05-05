@@ -70,8 +70,8 @@ const getIconUrl = (fileName) =>
   }
   
   .more-button img {
-    width: 14px; /* Scaled down icon size */
-    height: 14px; /* Scaled down icon size */
+    width: 24px; /* Scaled down icon size */
+    height: 24px; /* Scaled down icon size */
   }
   
   .dropdown-menu {

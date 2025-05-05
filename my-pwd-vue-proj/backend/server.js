@@ -9,7 +9,12 @@ import { createServer } from 'http';
 import { startWebSocketServer } from './websocketServer.js';
 import { pool } from './config/database.js'; // Assuming you export pool here
 import fileRoutes from './routes/fileRoutes.js';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 
 const app = express();
@@ -35,7 +40,8 @@ app.get('/', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api', adminRoutes);
 app.use('/api/applicants', applicantRoutes);
-app.use('/api/Documents', fileRoutes); 
+app.use('/api/Documents', fileRoutes);
+app.use('/uploads', express.static(path.join(__dirname, 'Documents')));
 // ✅ WebSocket setup
 startWebSocketServer(server, pool);
 

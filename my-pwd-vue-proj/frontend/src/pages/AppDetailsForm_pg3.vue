@@ -3,22 +3,16 @@
       <div v-if="visible" class="mask-overlay">
         <div class="form-container">
           <!-- Header Section -->
-          <header class="form-header">
-            <img :src="getIconUrl('back_button_grey.png')" alt="Back" class="back-icon" @click="closeForm" />
-            <h2 class="form-title">DOCUMENTS</h2>
-            <div class="right-header-group">
-                <div class="picture-placeholder">
-                  <img
-                    v-if="userImages['1x1_img']"
-                    :src="userImages['1x1_img']"
-                    class="resized-1x1"
-                    @click="openImageModal(userImages['1x1_img'])"
-                  />
-                </div>
-              <img :src="getIconUrl('edit_black.png')" alt="Edit" class="edit-icon" @click="toggleEditMode" />
-            </div>
-          </header>
-  
+          <AppDetailsFormHeader
+            :userData="props.userData"
+            :visible="props.visible"
+            :currentPage="props.currentPage"
+            :totalPages="props.totalPages"
+            title="Documents"
+            @close="closeForm"
+            @toggle-edit="toggleEditMode"
+          />
+
           <!-- Body Section -->
             <main class="form-body">
 
@@ -62,6 +56,13 @@
               <a class="doc-link linked-word" 
               @click="openImageModal(userImages['govissue_img_2'])">
                 Government Issue 2
+              </a>
+            </div>
+
+            <div class="form-group linked-item">
+              <a class="doc-link linked-word" 
+              @click="openImageModal(userImages['med_cert'])">
+               Medical Certificate  
               </a>
             </div>
 
@@ -111,6 +112,7 @@
 import axios from 'axios';
 import { ref, watch, computed } from 'vue';
 import VueEasyLightbox from 'vue-easy-lightbox';
+import AppDetailsFormHeader from '@/components/AppDetailsFormHeader.vue';
 
 const props = defineProps({
   visible: Boolean,
@@ -171,7 +173,8 @@ const userImages = ref({
   'birthcert_img': '',
   'brgycert_img': '',
   'govissue_img_1': '',
-  'govissue_img_2': ''
+  'govissue_img_2': '',
+  'med_cert': ''
 });
 
 function fetchUserImages() {
@@ -329,14 +332,14 @@ function fetchUserImages() {
   
   /* Page Indicator */
   .page-indicator {
-    margin-top: 12.9em;
+    margin-top: 9.5em;
     color: #707680;
     font-size: 0.875rem; /* ~14px */
   }
   
   /* Footer Arrow */
   .footer-arrow {
-    margin-top: 14.2em;
+    margin-top: 10.8em;
     width: 1em;  /* ~16px if base is 16px */
     height: 1em;
     cursor: pointer;

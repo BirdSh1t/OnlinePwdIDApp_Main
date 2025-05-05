@@ -9,7 +9,7 @@
         <img :src="getIconUrl('total_applicants_black.png')" alt="Total Applicants" class="stats-icon" />
         <div class="stats-text">
           <p class="stats-number">{{ totalApplicants }}</p>
-          <p class="stats-label">Total applicants</p>
+          <p class="stats-label">Total verified PWD IDs</p>
         </div>
       </div>
 
@@ -72,89 +72,124 @@ export default {
     };
   },
   methods: {
-    async fetchPendingApplicationsCount() {
-      try {
-        const res = await axios.get('http://localhost:4000/api/applicants/pending/count');
-        this.processingApplications = res.data.count;
-      } catch (err) {
-        console.error('Failed to fetch pending applications count:', err);
+    animateCounter(fieldName, newValue) {
+    const duration = 1000; // milliseconds (1 second)
+    const frameRate = 60; // frames per second
+    const totalFrames = Math.round((duration / 1000) * frameRate);
+    
+    const startValue = this[fieldName];
+    const increment = (newValue - startValue) / totalFrames;
+    
+    let frame = 0;
+    
+    const counter = setInterval(() => {
+      frame++;
+      this[fieldName] = Math.round(startValue + increment * frame);
+      
+      if (frame === totalFrames) {
+        clearInterval(counter);
+        this[fieldName] = newValue; // Make sure it ends exactly at the new value
       }
-    },
-    async fetchRecentApplicants() {
-      try {
-        const res = await axios.get("http://localhost:4000/api/applicants/pending/recent");
-        this.recentApplicants = res.data;
-      } catch (err) {
-        console.error("Failed to fetch recent applicants:", err);
-      }
-    },
-    getIconUrl(fileName) {
-      return new URL(`/src/assets/icons/${fileName}`, import.meta.url).href;
-    },
-    async handleSearch(query) {
-      if (!query.trim()) {
-        this.filteredData = this.users;
-        return;
-      }
-
-      try {
-        const res = await axios.get("http://localhost:4000/api/search", {
-          params: { page: "dashboard", query }
-        });
-        this.filteredData = res.data.length ? res.data : [];
-      } catch (error) {
-        console.error("Search error:", error);
-        this.filteredData = [];
-      }
+    }, 1000 / frameRate);
+  },
+  async fetchRecentApplicants() {
+    try {
+      const res = await axios.get("http://localhost:4000/api/applicants/pending/recent");
+      this.recentApplicants = res.data;
+    } catch (err) {
+      console.error("Failed to fetch recent applicants:", err);
     }
   },
-  async mounted() {
-    this.fetchRecentApplicants();
-    this.fetchPendingApplicationsCount(); 
 
+  async fetchPendingApplicationsCount() {
     try {
-    const res = await axios.get("http://localhost:4000/api/users?archived=0");
-    this.users = res.data;
-    this.filteredData = res.data;
-    this.totalApplicants = res.data.length;
-    this.walkInApplicants = res.data.filter(u => u.status === "Walk-in").length;
-    this.onlineApplicants = res.data.filter(u => u.status === "Online").length;
+      const res = await axios.get('http://localhost:4000/api/applicants/pending/count');
+      this.processingApplications = res.data.count;
     } catch (err) {
-      console.error("Initial fetch error:", err);
+      console.error('Failed to fetch pending applications count:', err);
+    }
+  },
+  async fetchActiveUsers() {
+    try {
+      const res = await axios.get("http://localhost:4000/api/users?archived=0");
+      this.users = res.data;
+      this.filteredData = res.data;
+      this.updateStats();
+    } catch (err) {
+      console.error("Failed to fetch active users:", err);
+    }
+  },
+  updateStats() {
+    this.totalApplicants = this.users.length;
+    this.walkInApplicants = this.users.filter(u => u.status === "walk-in").length;
+    this.onlineApplicants = this.users.filter(u => u.status === "online").length;
+  },
+  setupWebSocket() {
+  this.socket = new WebSocket("ws://localhost:4000");
+
+  this.socket.addEventListener("message", (event) => {
+    const msg = JSON.parse(event.data);
+
+    if (msg.event === "recent-applicant") {
+      const newEntry = { ...msg.data, isNew: true };
+      this.recentApplicants.unshift(newEntry);
+      if (this.recentApplicants.length > 10) this.recentApplicants.pop();
+
+      setTimeout(() => {
+        newEntry.isNew = false;
+      }, 3000);
     }
 
-    // ✅ WebSocket connection
-    this.socket = new WebSocket("ws://localhost:4000");
+    if (msg.event === "update-active") {
+      this.users = msg.data;
+      this.filteredData = [...msg.data];
 
-    this.socket.addEventListener("message", (event) => {
-      const msg = JSON.parse(event.data);
+      // ✅ Animate counters nicely
+      this.animateCounter('totalApplicants', this.users.length);
+      this.animateCounter('walkInApplicants', this.users.filter(u => u.status === "walk-in").length);
+      this.animateCounter('onlineApplicants', this.users.filter(u => u.status === "online").length);
+    }
 
-      if (msg.event === "recent-applicant") {
-        const newEntry = { ...msg.data, isNew: true };
+    if (msg.event === "online-applicant-count") {
+      this.animateCounter('onlineApplicants', msg.data.count);
+    }
 
-        this.recentApplicants.unshift(newEntry);
-        if (this.recentApplicants.length > 10) this.recentApplicants.pop();
+    if (msg.event === "processing-applications-count") {
+      this.animateCounter('processingApplications', msg.data.count);
+    }
+  });
+},
 
-          // Optional animation flag
-          setTimeout(() => {
-            newEntry.isNew = false;
-          }, 3000);
-        }
+  async handleSearch(query) {
+    if (!query.trim()) {
+      this.filteredData = this.users;
+      return;
+    }
 
-        if (msg.event === "update-active") {
-          this.users = msg.data;
-          this.filteredData = [...msg.data];
-        }
-
-        if (msg.event === "online-applicant-count") {
-          this.onlineApplicants = msg.data.count;
-        }
-
-        if (msg.event === "processing-applications-count") {
-        this.processingApplications = msg.data.count;
-        }
+    try {
+      const res = await axios.get("http://localhost:4000/api/search", {
+        params: { page: "dashboard", query }
       });
+      this.filteredData = res.data.length ? res.data : [];
+    } catch (error) {
+      console.error("Search error:", error);
+      this.filteredData = [];
+    }
+  },
+
+  getIconUrl(fileName) {
+    return new URL(`/src/assets/icons/${fileName}`, import.meta.url).href;
     },
+  },
+  async mounted() {
+    await Promise.all([
+      this.fetchRecentApplicants(),
+      this.fetchPendingApplicationsCount(),
+      this.fetchActiveUsers()
+    ]);
+
+    this.setupWebSocket();
+  },
   beforeUnmount() {
     if (this.socket) this.socket.close();
   },

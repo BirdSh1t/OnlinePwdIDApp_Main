@@ -9,7 +9,7 @@
             <tr>
               <th>Name</th>
               <th>Age</th>
-              <th>Disability Type</th>
+              <th>Status</th>
             </tr>
           </thead>
 
@@ -22,7 +22,7 @@
             >
               <td>{{ applicant.full_name || applicant.fullName }}</td>
               <td>{{ applicant.age }}</td>
-              <td>{{ applicant.types_of_disability || applicant.disability }}</td>
+              <td>{{ applicant.application_status }}</td>
             </tr>
           </tbody>
         </table>

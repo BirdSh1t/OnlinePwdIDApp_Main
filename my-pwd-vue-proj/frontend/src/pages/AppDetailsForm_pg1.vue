@@ -3,15 +3,16 @@
     <div v-if="visible" class="mask-overlay">
       <div class="form-container">
         <!-- Header Section -->
-        <header class="form-header">
-          <img :src="getIconUrl('back_button_grey.png')" alt="Back" class="back-icon" @click="closeForm" />
-          <h2 class="form-title">PERSONAL DETAILS</h2>
-          <div class="right-header-group">
-            <div class="picture-placeholder"></div>
-            <!-- Clicking the edit icon toggles edit mode -->
-            <img :src="getIconUrl('edit_black.png')" alt="Edit" class="edit-icon" @click="toggleEditMode" />
-          </div>
-        </header>
+        <AppDetailsFormHeader
+          :userData="props.userData"
+          :visible="props.visible"
+          :currentPage="props.currentPage"
+          :totalPages="props.totalPages"
+          title="Personal Information"
+          @close="closeForm"
+          @toggle-edit="toggleEditMode"
+        />
+
 
         <!-- Body Section -->
         <main class="form-body">
@@ -216,11 +217,11 @@
 
           <!-- Philhealth No -->
           <div class="form-group">
-            <label>Philhealth No:</label>
+            <label>Email:</label>
             <input 
               type="text" 
               class="text-field" 
-              v-model="formData.philhealth_no"
+              v-model="formData.email"
               :readonly="!isEditMode" 
             />
           </div>
@@ -249,7 +250,20 @@
             <template v-else>
               <input type="text" class="text-field" :value="userData.annotation" readonly />
             </template>
-          </div>         
+          </div>      
+          
+          <!-- Philhealth No -->
+          <div class="form-group">
+            <label>Philhealth No:</label>
+            <input 
+              type="text" 
+              class="text-field" 
+              v-model="formData.philhealth_no"
+              :readonly="!isEditMode" 
+            />
+          </div>
+
+
         </main>
 
         <!-- Footer Section -->
@@ -292,7 +306,7 @@ import { defineProps, defineEmits } from 'vue';
 import Multiselect from "vue-multiselect";
 import "vue-multiselect/dist/vue-multiselect.css";
 import Datepicker from "@vuepic/vue-datepicker";
-
+import AppDetailsFormHeader from '@/components/AppDetailsFormHeader.vue';
 
 
 const emit = defineEmits(["close", "prev", "next"]);
@@ -397,7 +411,6 @@ function saveChanges() {
 
   
 <style scoped>
-/* Fade transition for black mask & form */
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.3s ease;

@@ -26,7 +26,8 @@ const isAdmin = (req, res, next) => {
       'brgycert_img': 'Brgycert',
       'votersreg_img': 'Votersreg',
       'govissue_img_1': 'Govissue1',
-      'govissue_img_2': 'Govissue2'
+      'govissue_img_2': 'Govissue2',
+      'med_cert' : 'MedCert',
     };
   
     const folder = folderMap[type];

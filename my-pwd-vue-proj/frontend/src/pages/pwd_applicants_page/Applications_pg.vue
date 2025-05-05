@@ -1,5 +1,5 @@
 <template>
-  <div class="application-page">
+    <div class="application-page">  
     <Header class="NavBar" />
     <!-- Hero Section with Background Image -->
     <div class="hero-section">
@@ -70,10 +70,11 @@
               :options="sexOptions"
               class="custom-dropdown"
               id="sex"
+              :searchable="false"
+              placeholder="Select sex"
               ></multiselect>
               <label for="sex">Sex<span class="asterisk">*</span></label>
           </div>
-
 
           <div class="form-group">
               <Datepicker
@@ -138,8 +139,9 @@
               :options="bloodTypeOptions"
               class="custom-dropdown"
               id="bloodType"
+              :searchable="false"
               ></multiselect>
-              <label for="bloodType">Blood Type<span class="asterisk">*</span></label>
+              <label for="bloodType">Blood Type</label>
           </div>
 
           <div class="form-group dropdown-group">
@@ -148,6 +150,7 @@
               :options="educationOptions"
               class="custom-dropdown"
               id="education"
+              :searchable="false"
               ></multiselect>
               <label for="education">Educational Attainment<span class="asterisk">*</span></label>
           </div>
@@ -155,8 +158,14 @@
 
           <div class="form-row dropdown-row">
           <div class="form-group-PhilNum">
-              <input type="text" v-model="formData.philhealth_no" placeholder="Enter PhilHealth number" required @keypress="preventLetters" />
-              <label>PhilHealth Number<span class="asterisk">*</span></label>
+            <input
+                v-model="formData.philhealth_no"
+                @input="formatPhilHealthNo"
+                maxlength="14" 
+                placeholder="XX-XXXXXXXXXX-X"
+                :class="{ 'is-invalid': formData.philhealth_no && !validatePhilHealthNo(formData.philhealth_no) }"
+              >
+              <label>PhilHealth Number</label>
           </div>
 
           <div class="form-group dropdown-group">
@@ -165,6 +174,7 @@
               :options="civilStatusOptions"
               class="custom-dropdown"
               id="civilStatus"
+              :searchable="false"
               ></multiselect>
               <label for="education">Civil Status<span class="asterisk">*</span></label>
           </div>
@@ -175,6 +185,7 @@
               :options="employmentStatusOptions"
               class="custom-dropdown"
               id="employmentStatus"
+              :searchable="false"
               ></multiselect>
               <label for="education">Employment Status<span class="asterisk">*</span></label>
           </div>
@@ -202,6 +213,7 @@
                 {{ formData.birthcert_img ? '×' : '*' }}
               </span>
             </label>
+            
 
             <!-- 🟩 Barangay Certificate -->
             <label class="upload-label" @click="handleLabelClick('brgycert_img', $event)">
@@ -221,6 +233,7 @@
               </span>
             </label>
 
+
             <!-- 🟩 Voter's Registration -->
             <label class="upload-label" @click="handleLabelClick('votersreg_img', $event)">
               <input
@@ -238,6 +251,7 @@
                 {{ formData.votersreg_img ? '×' : '*' }}
               </span>
             </label>
+
 
             <!-- 🟩 Government ID 1 -->
             <label class="upload-label" @click="handleLabelClick('govissue_img_1', $event)">
@@ -257,6 +271,7 @@
               </span>
             </label>
 
+
             <!-- 🟩 Government ID 2 -->
             <label class="upload-label" @click="handleLabelClick('govissue_img_2', $event)">
               <input
@@ -274,6 +289,7 @@
                 {{ formData.govissue_img_2 ? '×' : '*' }}
               </span>
             </label>
+
 
             <!-- 🟩 1x1 Photo -->
             <label class="upload-label" @click="handleLabelClick('1x1_img', $event)">
@@ -293,21 +309,24 @@
               </span>
             </label>
 
-          <!-- Schedule Picker (conditionally shown) -->
-          <div class="Sched-row" v-if="isScheduleVisible">
-            <div class="form-group-sched">
-              <Datepicker
-                v-model="formData.Schedule"
-                class="custom-datepicker"
-                :enable-time-picker="false"
-                :min-date="new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)"
-                placeholder="Select Schedule Date"
-                :day-class="customDateClass"
-                :disabled-date="isInvalidDate"
+
+            <label class="upload-label" @click="handleLabelClick('med_cert', $event)">
+              <input
+                type="file"
+                accept="image/png,image/jpeg"
+                hidden
+                @change="handleFileUpload($event, 'med_cert')"
               />
-              <label for="Schedule">Pick up Schedule<span class="asterisk">*</span></label>
-            </div>
-          </div>
+              Medical Certificate
+              <span
+                class="file-action"
+                :class="{ remove: formData['med_cert'] }"
+                @click.stop="formData['med_cert'] ? removeFile('med_cert') : null"
+              >
+                {{ formData['med_cert'] ? '×' : '*' }}
+              </span>
+            </label>
+
 
             <!-- 🔍 Lightbox Preview -->
             <VueEasyLightbox
@@ -316,12 +335,24 @@
               @hide="preview.visible = false"
             />
             </div>
-        <!-- Submit Button -->
-        <button type="submit" class="submit-btn">Submit Application</button>
-      </form>
+
+          <!-- Submit Button -->
+          <button type="submit" class="submit-btn">Submit Application</button>
+
+          <div v-if="showOverviewModal" class="modal-mask">
+            <transition name="slide-up">
+              <OverviewModal 
+                :formData="formData"
+                @close="closeModal"
+                @confirm-submit="handleOverviewSubmit"
+              />
+            </transition>
+          </div>
+
+        </form>
+      </div>
     </div>
   </div>
-</div>
 </template>
 
 <script>
@@ -334,15 +365,16 @@ import VueEasyLightbox from 'vue-easy-lightbox';
 import { useToast } from 'vue-toastification';
 import Header from '@/components/Header.vue';
 import TermsAndConditionModal from '@/components/modals/TermsAndConditionModal.vue';
+import InvalidFieldsToast from '@/components/modals/InvalidFieldsToast.vue';
+import OverviewModal from '@/components/modals/OverviewModal.vue';
 
 export default {
-  components: { Multiselect, Datepicker, VueEasyLightbox, Header, TermsAndConditionModal },
+  components: { Multiselect, Datepicker, VueEasyLightbox, Header, TermsAndConditionModal, OverviewModal },
   name: "ApplicationsPg",
   data() {
     return {
-      showModal: true,
+      showOverviewModal: false,
       toast: useToast(),
-      // 🔍 preview must be outside formData
       preview: {
         visible: false,
         file: null,
@@ -350,7 +382,6 @@ export default {
       },
 
       formData: {
-        // 💾 All user inputs
         first_name: "",
         middle_name: "",
         surname: "",
@@ -374,7 +405,6 @@ export default {
         govissue_img_1: null,
         govissue_img_2: null,
         ["1x1_img"]: null,
-        Schedule: "",
       },
 
       // 🔽 Dropdown values
@@ -393,7 +423,25 @@ export default {
     sexOptions: ['Male', 'Female'],
     };
   },
+  created() {
+      const mode = this.$route.query.mode;
 
+      if (mode === 'renew') {
+        const pwdId = this.$route.query.pwd_id;
+        if (pwdId) {
+          this.loadPreviousData(pwdId);
+        } else {
+          this.toast.error("Missing PWD ID for renewal.");
+        }
+      } else if (mode === 'apply') {
+        this.resetFormData();
+      }
+    },
+    computed: {
+    isRenewalMode() {
+      return this.$route.query.mode === 'renew' && this.$route.query.pwd_id;
+    }
+  },
   // ✅ Auto-save the form to localStorage
   watch: {
     formData: {
@@ -401,66 +449,122 @@ export default {
       handler(newVal) {
         localStorage.setItem("pwd_application_form", JSON.stringify(newVal));
       }
-    }
+    },
   },
-
   // ✅ Load saved form on page refresh
   mounted() {
-    const raw = localStorage.getItem("pwd_application_form");
-    if (raw) {
-      const saved = JSON.parse(raw);
-      // Check that saved has at least one non-empty value:
-      const hasSomething = Object.values(saved).some(val => {
-        // for files check non-null, for strings non-"" etc.
-        return val !== null && val !== "" && val !== undefined;
-      });
-      if (hasSomething) {
-        this.formData = { ...this.formData, ...saved };
-        this.toast.info("Restored previous form data.");
+    const mode = this.$route.query.mode;
+
+    if (mode !== 'renew') {
+      const raw = localStorage.getItem("pwd_application_form");
+      if (raw) {
+        const saved = JSON.parse(raw);
+        const hasSomething = Object.values(saved).some(val =>
+          val !== null && val !== "" && val !== undefined
+        );
+        if (hasSomething) {
+          this.formData = { ...this.formData, ...saved };
+          this.toast.info("Restored previous form data.");
+        }
       }
     }
-  // Show modal and lock scroll
-  document.body.classList.add('modal-open');
-  this.showModal = true;
   },
   beforeUnmount() {
     // Cleanup modal
     document.body.classList.remove('modal-open');
     document.body.style.overflow = '';
   },
-  computed: {
-    // instead of a method, make this computed so it re‐runs automatically
-  isScheduleVisible() {
-    const required = [
-      'first_name', 'middle_name', 'surname', 'full_name',
-      'address', 'age', 'sex', 'birthdate', 'contact_number',
-      'email', 'parent_guardian', 'civil_status', 'employment_status',
-      'types_of_disability', 'bloodType', 'education', 'philhealth_no',
-      'birthcert_img', 'brgycert_img', 'votersreg_img',
-      'govissue_img_1', 'govissue_img_2', '1x1_img'
-      ];
+  methods: {
+    resetFormData() {
+    this.formData = {
+      first_name: "",
+      middle_name: "",
+      surname: "",
+      full_name: "",
+      email: "",
+      sex: "",
+      birthdate: null,
+      age: null,
+      address: "",
+      contact_number: "",
+      civil_status: "",
+      employment_status: "",
+      parent_guardian: "",
+      types_of_disability: "",
+      bloodType: "",
+      education: "",
+      philhealth_no: "",
+      birthcert_img: null,
+      brgycert_img: null,
+      votersreg_img: null,
+      govissue_img_1: null,
+      govissue_img_2: null,
+      ["1x1_img"]: null,
+    };
 
-      return required.every(key => {
-        const value = this.formData[key];
-
-        // For files, ensure it's a File object
-        if (key.endsWith('_img')) {
-          return value instanceof File;
-        }
-
-        // Everything else must be truthy
-        return value !== null && value !== '' && value !== undefined;
-      });
+    this.preview = {
+      visible: false,
+      file: null,
+      images: []
+    };
+  },
+  handleFormValidation() {
+    if (this.getDetailedValidationErrors(this.formData)) {
+      this.showOverviewModal = true;
+    } else {
+      this.toast.error("Please fill in all required fields.");
     }
   },
-  methods: {
+  async loadPreviousData(pwdId) {
+    try {
+      const res = await axios.get(`http://localhost:4000/api/check/${pwdId}`);
+        if (res.data.exists) {
+          const previous = res.data.data;
+          console.log("Loaded data for renewal:", previous);
+
+          this.formData = {
+            ...this.formData,
+            first_name: previous.first_name || "",
+            middle_name: previous.middle_name || "",
+            surname: previous.surname || "",
+            full_name: previous.full_name || "",
+            email: previous.email || "",
+            sex: previous.sex || "",
+            birthdate: previous.birthdate || null,
+            age: previous.age || null,
+            address: previous.address || "",
+            contact_number: previous.contact_number || "",
+            civil_status: previous.civil_status || "",
+            employment_status: previous.employment_status || "",
+            parent_guardian: previous.parent_guardian || "",
+            types_of_disability: previous.types_of_disability || "",
+            bloodType: previous.blood_type || "",
+            education: previous.education || "",
+            philhealth_no: previous.philhealth_no || "",
+              // ⬇️ Add these image fields for renewals
+            birthcert_img: previous.birthcert_img || null,
+            brgycert_img: previous.brgycert_img || null,
+            votersreg_img: previous.votersreg_img || null,
+            govissue_img_1: previous.govissue_img_1 || null,
+            govissue_img_2: previous.govissue_img_2 || null,
+            ["1x1_img"]: previous["1x1_img"] || null,
+            med_cert: previous.med_cert || null,
+          };
+        } else {
+          this.toast.error("PWD ID not found in approved records.");
+        }
+      } catch (err) {
+        console.error("Error loading previous data:", err);
+        this.toast.error("Server error while loading previous data.");
+      }
+    },
     openModal() {
-      this.showModal = true;
+      this.showOverviewModal = true;
       document.body.classList.add('modal-open');
     },
     closeModal() {
-      this.showModal = false;
-      document.body.style.overflow = '';
+      this.showOverviewModal = false;
+      document.body.classList.remove('modal-open');
     },
     handleAgree() {
       this.closeModal();
@@ -492,7 +596,19 @@ export default {
     return new URL(`/src/assets/images/${fileName}`, import.meta.url).href;
     },
     getPreviewUrl(file) {
-      return file && file.type.startsWith('image/') ? URL.createObjectURL(file) : '';
+      if (!file) return '';
+
+      // If it's a string from the backend
+      if (typeof file === 'string') {
+        return `/api/Documents/${file}`; // 👈 uses your Express static path
+      }
+
+      // If it's a new File object from file input
+      if (file instanceof File) {
+        return URL.createObjectURL(file);
+      }
+
+      return '';
     },
     preventNumbers(e) {
       const char = String.fromCharCode(e.keyCode);
@@ -509,28 +625,32 @@ export default {
       event.target.value = ''; // Reset input
     }
   },
-  
   removeFile(field) {
     this.formData[field] = null;
     this.toast.info("File removed.");
   },
-  
   isImage(file) {
     return file && typeof file.type === "string" && file.type.startsWith("image/");
   },
-  
   openPreview(field) {
     const file = this.formData[field];
-    if (!file || !this.isImage(file)) return;
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      this.preview.images = [e.target.result];
+    if (file instanceof File) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        this.preview.images = [e.target.result];
+        this.preview.visible = true;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    else if (typeof file === 'string') {
+      // ✅ Replace 'Documents/' with 'uploads/' so the URL matches your server route
+      const correctedPath = file.replace(/^Documents\//, 'uploads/');
+      this.preview.images = [`http://localhost:4000/${correctedPath}`];
       this.preview.visible = true;
-    };
-    reader.readAsDataURL(file);
+    }
   },
-  
   handleLabelClick(field, event) {
     if (this.formData[field]) {
       // Only prevent default if we're previewing
@@ -549,108 +669,190 @@ export default {
     
     const maxSize = 5 * 1024 * 1024; // 5MB
     
-    return allowedTypes.includes(file.type) && file.size <= maxSize;
-  },
-  validatePhoneNumber(phone) {
-    return /^[0-9]{11}$/.test(phone) && phone.startsWith('09'); // Specific to PH numbers
-  },
-  validateAge(age) {
-    return Number.isInteger(Number(age)) && age >= 0 && age <= 150;
-  },
-  validateName(name) {
-  return /^[A-Za-zÀ-ÿ\s'.-]+$/.test(name);
-  },
-  validateEmail(email) {
-    return /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email);
-  },
-  validateAllFields() {
+    return file instanceof File || (typeof file === 'string' && file.trim() !== '');
+    },
+    validatePhoneNumber(phoneNumber) {
+      if (!phoneNumber) return false; // Consider whether you want to allow empty
+      
+      // Remove all non-digit characters
+      const digits = phoneNumber.replace(/\D/g, '');
+      
+      // Must be exactly 11 digits starting with 09
+      return /^09\d{9}$/.test(digits);
+    },
+    validatePhilHealthNo(philhealth_no) {
+      if (!philhealth_no) return true;   
+      const isValidFormat = /^\d{2}-\d{9}-\d{1}$/.test(philhealth_no);
+      const digitCount = philhealth_no.replace(/\D/g, '').length;   
+      return isValidFormat && digitCount === 12;
+    },
+    formatPhilHealthNo(event) {
+      let value = event.target.value;
+      let digits = value.replace(/[^\d-]/g, '');
+      if (digits.length > 2 && digits[2] !== '-') {
+        digits = digits.slice(0, 2) + '-' + digits.slice(2);
+      }
+      if (digits.length > 12 && digits[12] !== '-') {
+        digits = digits.slice(0, 12) + '-' + digits.slice(12, 13);
+      }
+      this.formData.philhealth_no = digits.slice(0, 14);
+    },
+    validateAge(age) {
+      return Number.isInteger(Number(age)) && age >= 0 && age <= 150;
+    },
+    validateName(name) {
+      return /^[A-Za-zÀ-ÿ\s'.-]+$/.test(name);
+    },
+    validateEmail(email) {
+      return /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email);
+    }, 
+    validateAllFields() {
     const f = this.formData;
     const validations = {
       names: [
-        ['first_name', this.validateName(f.first_name)],
-        ['middle_name', f.middle_name ? this.validateName(f.middle_name) : true],
-        ['surname', this.validateName(f.surname)],
-        ['parent_guardian', f.parent_guardian ? this.validateName(f.parent_guardian) : true]
+        ['First Name', this.validateName(f.first_name)],
+        ['Middle Name', f.middle_name ? this.validateName(f.middle_name) : true],
+        ['Surname', this.validateName(f.surname)],
+        ['Full Name', !!f.full_name],
+        ['Parent/Guardian Name', !!f.parent_guardian]
       ],
       contacts: [
-        ['email', this.validateEmail(f.email)],
-        ['contact_number', this.validatePhoneNumber(f.contact_number)]
+        ['Email', this.validateEmail(f.email)],
+        ['Contact Number', this.validatePhoneNumber(f.contact_number)]
       ],
       documents: [
-        ['1x1_img', this.validateFile(f["1x1_img"])],
-        ['brgycert_img', this.validateFile(f.brgycert_img)],
-        ['birthcert_img', this.validateFile(f.birthcert_img)],
-        ['votersreg_img', this.validateFile(f.votersreg_img)],
-        ['govissue_img_1', this.validateFile(f.govissue_img_1)],
-        ['govissue_img_2', this.validateFile(f.govissue_img_2)],
+        ['1x1 Photo', this.validateFile(f["1x1_img"])],
+        ['Barangay Certificate', this.validateFile(f.brgycert_img)],
+        ['Birth Certificate', this.validateFile(f.birthcert_img)],
+        ['Voter\'s Registration', this.validateFile(f.votersreg_img)],
+        ['Government Issued ID 1', this.validateFile(f.govissue_img_1)],
+        ['Government Issued ID 2', this.validateFile(f.govissue_img_2)],
+        ['Medical Certificate', this.validateFile(f.med_cert)],
       ],
       others: [
-        ['age', this.validateAge(f.age)],
-        ['types_of_disability', !!f.types_of_disability],
-        ['civil_status', !!f.civil_status],
-        ['address', !!f.address]
+        ['Age', this.validateAge(f.age)],
+        ['Type of Disability', !!f.types_of_disability],
+        ['Civil Status', !!f.civil_status],
+        ['Address', !!f.address],
+        ['Education', !!f.education],
+        ['Employment Status', !!f.employment_status],
+        ['PhilHealth Number', this.validatePhilHealthNo(f.philhealth_no)]
       ]
-      };
-      const failed = [];
-      for (const group of Object.values(validations)) {
-        for (const [field, valid] of group) {
-          if (!valid) failed.push(field);
+    };
+
+    const failedFields = [];
+
+    // Now we check each group of validations
+    for (const group of Object.values(validations)) {
+      for (const [fieldName, isValid] of group) {
+        if (!isValid) {
+          failedFields.push(fieldName);
         }
       }
-      if (failed.length) {
-        console.warn("Validation failed for:", failed);
-        return false;
+    }
+
+    return failedFields;
+    },
+    getDetailedValidationErrors(formData) {
+      const failedFields = this.validateAllFields();
+      const detailedErrorMessages = [];
+
+      const f = formData;
+
+      if (!this.validateName(f.first_name)) {
+        detailedErrorMessages.push("First Name must only contain letters, spaces, or basic punctuation.");
       }
-      return true;
-      },
-      resetForm() {
-      this.formData = {
-        first_name: '',
-        middle_name: '',
-        surname: '',
-        full_name: '',
-        email: '',
-        sex: '',
-        birthdate: null,
-        age: null,
-        address: '',
-        contact_number: '',
-        civil_status: '',
-        employment_status: '',
-        parent_guardian: '',
-        types_of_disability: '',
-        bloodType: '',
-        education: '',
-        philhealth_no: '',
-        Schedule: null,
+      if (f.middle_name && !this.validateName(f.middle_name)) {
+        detailedErrorMessages.push("Middle Name must only contain letters, spaces, or basic punctuation.");
+      }
+      if (!this.validateName(f.surname)) {
+        detailedErrorMessages.push("Surname must only contain letters, spaces, or basic punctuation.");
+      }
+      if (!f.full_name) {
+        detailedErrorMessages.push("Full Name is required.");
+      }
+      if (!f.parent_guardian) {
+        detailedErrorMessages.push("Parent/Guardian Name is required.");
+      }
+      if (!this.validateEmail(f.email)) {
+        detailedErrorMessages.push("Email must be a valid format like yourname@example.com.");
+      }
+      if (!this.validatePhoneNumber(f.contact_number)) {
+        detailedErrorMessages.push("Contact Number must be 11 digits starting with '09'.");
+      }
+      if (!this.validateFile(f["1x1_img"])) {
+        detailedErrorMessages.push("1x1 Photo must be uploaded.");
+      }
+      if (!this.validateFile(f.brgycert_img)) {
+        detailedErrorMessages.push("Barangay Certificate must be uploaded.");
+      }
+      if (!this.validateFile(f.birthcert_img)) {
+        detailedErrorMessages.push("Birth Certificate must be uploaded.");
+      }
+      if (!this.validateFile(f.votersreg_img)) {
+        detailedErrorMessages.push("Voter's Registration must be uploaded.");
+      }
+      if (!this.validateFile(f.govissue_img_1)) {
+        detailedErrorMessages.push("Government Issued ID 1 must be uploaded.");
+      }
+      if (!this.validateFile(f.govissue_img_2)) {
+        detailedErrorMessages.push("Government Issued ID 2 must be uploaded.");
+      }
+      if (!this.validateAge(f.age)) {
+        detailedErrorMessages.push("Age must be a valid number between 0 and 130.");
+      }
+      if (!f.types_of_disability) {
+        detailedErrorMessages.push("Type of Disability must be selected.");
+      }
+      if (!f.civil_status) {
+        detailedErrorMessages.push("Civil Status must be selected.");
+      }
+      if (!f.address) {
+        detailedErrorMessages.push("Address is required.");
+      }
+      if (!f.education) {
+        detailedErrorMessages.push("Education must be selected.");
+      }
+      if (!f.employment_status) {
+        detailedErrorMessages.push("Employment Status must be selected.");
+      }
+      if (!f.philhealth_no && !this.validatePhilHealthNo(f.philhealth_no)) {
+        detailedErrorMessages.push("PhilHealth Number must be in format XX-XXXXXXXXX-X (12 digits total)");
+      }
 
-        // ✅ Reset documents
-        birthcert_img: null,
-        brgycert_img: null,
-        votersreg_img: null,
-        govissue_img_1: null,
-        govissue_img_2: null,
-        ['1x1_img']: null
-      };
-
-      // ✅ Reset preview (if you use it)
-      this.preview = {
-        visible: false,
-        file: null,
-        images: []
-      };
+      return { failedFields, detailedErrorMessages };
     },
     async submitForm() {
-      if (!this.validateAllFields()) {
-        this.toast.error("Please correct the errors before submitting.");
-        return;
+      const { failedFields, detailedErrorMessages } = this.getDetailedValidationErrors(this.formData);
+
+      if (failedFields.length) {
+        if (failedFields.length <= 3) {
+          failedFields.forEach(field => {
+            this.toast.error(`${field} is invalid or missing.`, { duration: 4000 });
+          });
+        } else {
+          this.toast.error({
+            component: InvalidFieldsToast,
+            props: { errors: detailedErrorMessages }
+          }, {
+            timeout: 10000,
+            pauseOnHover: true,
+            closeOnClick: false,
+            draggable: false
+          });
+        }
+        return; // 🚫 Stop submission if any validation failed
       }
+
+      this.openModal(); // ✅ Overview modal pops up now that validation passed
+    },
+    async finalSubmit() {
+      this. formData.is_renewal = 0; // for finalSubmit()
 
       const formData = new FormData();
       const formattedData = {
         ...this.formData,
         birthdate: this.formatDateToMySQL(this.formData.birthdate),
-        Schedule: this.formatDateToMySQL(this.formData.Schedule)
       };
 
       Object.entries(formattedData).forEach(([key, value]) => {
@@ -659,11 +861,56 @@ export default {
 
       try {
         await axios.post("http://localhost:4000/api/applicants/pending", formData);
-        this.toast.success("Application submitted successfully!");
-        this.resetForm(); // ✅ Reset after success
+        this.toast.success("Application submitted successfully!", { duration: 4000 });
+
+        this.resetFormData();
+        this.closeModal();
+        this.showOverviewModal = false;
+        document.body.classList.remove('modal-open');
       } catch (err) {
         console.error("Submission error:", err);
-        this.toast.error("Submission failed. Please try again.");
+
+        const errorMessage = err.response?.data?.error || "Submission failed. Please try again.";
+        this.toast.error(errorMessage, { duration: 4000 }); // ✅ Show backend message
+      }
+
+      
+      console.log('Form Submitted!');
+      this.showOverviewModal = false;
+    },
+    async finalSubmitRenewal() {
+      this.formData.is_renewal = 1; // for finalSubmitRenewal()
+
+      const formData = new FormData();
+      const formattedData = {
+        ...this.formData,
+        birthdate: this.formatDateToMySQL(this.formData.birthdate),
+      };
+
+      Object.entries(formattedData).forEach(([key, value]) => {
+        formData.append(key, value);
+      });
+
+      try {
+        await axios.post("http://localhost:4000/api/applicants/pending", formData);
+        this.toast.success("Renewal request submitted successfully!", { duration: 4000 });
+        this.resetFormData(); // ✅ Reset after success
+
+        this.closeModal();
+        this.showOverviewModal = false;
+        document.body.classList.remove('modal-open');
+      } catch (err) {
+        console.error("Renewal submission error:", err);
+        this.toast.error("Submission failed. Please try again.", { duration: 4000 });
+      }
+
+      console.log('Renewal Form Submitted!');
+    },
+      handleOverviewSubmit() {
+      if (this.isRenewalMode) {
+        this.finalSubmitRenewal();
+      } else {
+        this.finalSubmit();
       }
     }
   }
@@ -671,6 +918,7 @@ export default {
 </script>
 <style scoped>
 /* Base Layout */
+
 .application-page {
 font-family: 'Segoe UI', sans-serif;
 background-color: #faf4e2;
@@ -1018,14 +1266,43 @@ object-fit: contain;
   color: #2196f3; /* bright blue */
 }
 
-.valid-date {
-  background-color: #e0ffe0 !important;
-  color: #1a8700 !important;
+.modal-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5); 
+  z-index: 999; 
+  animation: fadeIn 0.3s ease;
 }
 
-.invalid-date {
-  background-color: #ffe0e0 !important;
-  color: #c70000 !important;
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.slide-up-enter-active,
+.slide-up-leave-active {
+  transition: all 0.4s ease;
+}
+.slide-up-enter-from,
+.slide-up-leave-to {
+  transform: translateY(100%);
+  opacity: 0;
+}
+.slide-up-enter-to,
+.slide-up-leave-from {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* Add to your styles */
+.modal-open {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+  z-index: 1001;
 }
 
 /* Media Queries */

@@ -76,7 +76,7 @@ export default {
   left: 0;
   right: 0;
   background-color: #57c031; /* Solid green when NOT scrolled */
-  z-index: 1000;
+  z-index: 900;
   display: flex;
   align-items: center;
   justify-content: space-between;

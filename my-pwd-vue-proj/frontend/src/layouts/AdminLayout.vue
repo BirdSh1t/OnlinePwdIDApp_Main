@@ -1,4 +1,3 @@
-<!-- AdminLayout.vue -->
 <template>
   <div class="admin-layout">
     <NavBar />
@@ -8,6 +7,8 @@
         @updated="handleUpdate"
       />
     </div>
+    
+    <!-- ✅ MODAL WITH HEADER + FORM COMPONENT -->
     <div v-if="showAppDetails" class="modal-wrapper">
       <component
         :is="currentFormComponent"
@@ -30,17 +31,21 @@ import NavBar from '@/components/NavBar.vue';
 import AppDetailsForm_pg1 from '@/pages/AppDetailsForm_pg1.vue';
 import AppDetailsForm_pg2 from '@/pages/AppDetailsForm_pg2.vue';
 import AppDetailsForm_pg3 from '@/pages/AppDetailsForm_pg3.vue';
+import AppDetailsFormHeader from '@/components/AppDetailsFormHeader.vue';
 
 export default {
   name: "AdminLayout",
-  components: { NavBar },
+  components: {
+    NavBar,
+    AppDetailsFormHeader, // ✅ Don't forget to register this!
+  },
   data() {
     return {
       showAppDetails: false,
       formPage: 1,
       currentPage: 1,
-      totalPages: 3, // update to 3 pages
-      selectedUser: {}
+      totalPages: 3,
+      selectedUser: {},
     };
   },
   computed: {
@@ -48,36 +53,10 @@ export default {
       if (this.formPage === 1) return AppDetailsForm_pg1;
       if (this.formPage === 2) return AppDetailsForm_pg2;
       if (this.formPage === 3) return AppDetailsForm_pg3;
-      return AppDetailsForm_pg1; // fallback
+      return AppDetailsForm_pg1;
     },
   },
   methods: {
-      fetchUserDetails(userData) {
-      this.selectedUser = userData;
-      this.showAppDetails = true;
-      this.formPage = 1;
-      this.currentPage = 1;
-    },
-    closeForm() {
-      this.showAppDetails = false;
-    },
-    goToPreviousPage() {
-      if (this.formPage > 1) {
-        this.formPage--;
-        this.currentPage--;
-      }
-    },
-    goToNextPage() {
-      if (this.formPage < this.totalPages) {
-        this.formPage++;
-        this.currentPage++;
-      }
-    },
-    handleUpdate() {
-      // ✅ Relay event to the currently displayed page (e.g. Database.vue)
-      this.$emit("updated"); // 👈 send it up to router-view
-      this.closeForm();      // optional: close modal after update
-    },
     fetchUserDetails(userData) {
       this.selectedUser = userData;
       this.showAppDetails = true;
@@ -99,7 +78,11 @@ export default {
         this.currentPage++;
       }
     },
-  },
+    handleUpdate() {
+      this.$emit("updated");
+      this.closeForm();
+    }
+  }
 };
 </script>
 

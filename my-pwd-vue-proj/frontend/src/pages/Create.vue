@@ -14,7 +14,7 @@
         <img :src="getIconUrl('search_black.png')" alt="Search Icon" class="search-icon">
         <input
           type="text"
-          placeholder="Search here"
+          placeholder="Search PWD ID here..."
           class="search-input"
           v-model="searchQuery"
           @keydown.enter="handleSearch"
@@ -132,7 +132,7 @@
                 v-model="typeOfDisability"
                 :options="disabilityOptions"
                 :disabled="isNavigationMode"
-                :class="{ 'non-interactive': isNavigationMode }"
+                class="custom-dropdown"
                 id="type-of-disability"
               ></multiselect>
             </div>
@@ -426,20 +426,6 @@ export default {
         toast.success("Form cleared.");
       }
     },
-    async loadRecordByIndex(index) {
-    try {
-        const res = await fetch(`http://localhost:4000/api/form-record?index=${index}`);
-        const data = await res.json();
-
-        if (data.record) {
-          this.fillFormFromRecord(data.record);
-          this.currentIndex = data.index;
-          this.allRecords = Array(data.total).fill(null); // Keep for count reference
-        }
-      } catch (err) {
-        console.error("Failed to load record by index:", err);
-      }
-    },
     async handleSearch() {
     const toast = useToast();
     const query = this.searchQuery.trim();
@@ -657,9 +643,13 @@ export default {
     },
     async fetchAllRecords() {
     try {
-    const response = await axios.get("http://localhost:4000/api/users");
-    // Sort by num_users ASC before assigning to allRecords
-    this.allRecords = response.data.sort((a, b) => a.num_users - b.num_users);
+      const response = await axios.get("http://localhost:4000/api/users");
+
+      // 🔥 Filter out archived users (is_archived = 1)
+      const activeOnly = response.data.filter(user => user.is_archived === 0);
+
+      // ✅ Sort by num_users before assigning
+      this.allRecords = activeOnly.sort((a, b) => a.num_users - b.num_users);
 
       if (this.allRecords.length > 0) {
         this.currentIndex = 0;
@@ -669,22 +659,33 @@ export default {
       console.error("Failed to fetch users:", error);
     }
   },
+  async loadRecordByIndex(index) {
+    try {
+        const res = await fetch(`http://localhost:4000/api/form-record?index=${index}`);
+        const data = await res.json();
+
+        if (data.record) {
+          this.fillFormFromRecord(data.record);
+          this.currentIndex = data.index;
+          this.allRecords = Array(data.total).fill(null); // Keep for count reference
+        }
+      } catch (err) {
+        console.error("Failed to load record by index:", err);
+      }
+    },
   goToNext() {
     if (this.currentIndex < this.allRecords.length - 1) {
       this.loadRecordByIndex(this.currentIndex + 1);
     }
   },
-
   goToPrev() {
     if (this.currentIndex > 0) {
       this.loadRecordByIndex(this.currentIndex - 1);
     }
   },
-
   goToFirst() {
     this.loadRecordByIndex(0);
   },
-
   goToLast() {
     this.loadRecordByIndex(this.allRecords.length - 1);
   },
@@ -759,6 +760,17 @@ export default {
       const message = JSON.parse(event.data);
       if (message.event === "update-active") {
         this.allRecords = message.data;
+
+        //Apply this if the is_archive is fixed
+        // this.fetchAllRecords();
+
+        // this.socket = new WebSocket("ws://localhost:4000");
+        // this.socket.addEventListener("message", (event) => {
+        //   const message = JSON.parse(event.data);
+        //   if (message.event === "update-active") {
+        //     this.allRecords = message.data;
+        //   }
+        // });
       }
     });
   },

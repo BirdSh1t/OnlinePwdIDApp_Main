@@ -51,7 +51,7 @@ export default {
         { name: "Dashboard", icon: "dashboard_white.png", link: "/admin/dashboard", customClass: 'dashboard-icon' },
         { name: "Report", icon: "records_white.png", link: "/admin/database", customClass: 'records-icon' },
         { name: "Walk-ins", icon: "add_records_white.png", link: "/admin/create", customClass: 'create-icon' },
-        { name: "Schedule", icon: "calendar_white.png", link: "/admin/calendar", customClass: 'calendar-icon' },
+        // { name: "Schedule", icon: "calendar_white.png", link: "/admin/calendar", customClass: 'calendar-icon' },
         { name: "Applicants", icon: "pending-applicants-white.png", link: "/admin/pendingApp", customClass: 'applicants-icon' },
         { name: "Archive", icon: "archive_white.png", link: "/admin/archive", customClass: 'archive-icon' }
       ],

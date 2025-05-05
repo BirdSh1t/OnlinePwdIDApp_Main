@@ -21,6 +21,7 @@
           :allow-empty="false"
           @input="onFilterInput('sex', $event)"
           class="custom-dropdown"
+          :searchable="false" 
         />
 
         <!-- Status Filter -->
@@ -35,6 +36,7 @@
           :allow-empty="false"
           @input="onFilterInput('status', $event)"
           class="custom-dropdown"
+          :searchable="false" 
         />
 
         <!-- Date Picker -->
@@ -196,7 +198,7 @@ computed: {
       axios
         .get("http://localhost:4000/api/search", {
           params: {
-            page: "report",
+            page: "database",
             query
           }
         })
@@ -418,7 +420,7 @@ computed: {
   background: white;
   z-index: 200;
   font-family: 'montserrat', sans-serif;
-  font-size: 20px;
+  font-size: clamp(0.875rem, 1.5vw, 5.15rem);
   font-weight: 700;
   text-align: left;
   padding: 12px 15px;
@@ -436,7 +438,6 @@ computed: {
 
 
 .data-table td.more-icon {
-  position: sticky;
   right: 0;
   z-index: 50; /* Lower than header */
   background: white;
@@ -463,7 +464,7 @@ computed: {
   width: 10%;
   margin: 0 auto;
   padding: 8px 8px;
-  font-size: 16px;
+  font-size: clamp(0.75rem, 1.2vw, 4.95rem);
   color: #a6a6a6;
   padding-right: 40px;
   padding-left: 20px; /* ✅ Aligns with header */
@@ -496,13 +497,15 @@ td[class="invalid"] {
   color: #ff3131;
   font-weight: 600;
 }
-/* More Icon Column */
+
+
 .more-icon {
   position: sticky;
   z-index: 10;
-  width: 20px;
+  width: 5vw; /* Scales based on viewport width */
+  height: auto; /* Maintain aspect ratio */
   cursor: pointer;
-  margin-left: 18px;
+  margin-left: 1vw;
 }
 
 .name-number {
