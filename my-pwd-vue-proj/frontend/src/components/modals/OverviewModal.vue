@@ -1,5 +1,4 @@
-<template>
-      
+<template>  
         <div class="modal-content">
         <!-- Header -->
         <div class="modal-header">
@@ -11,7 +10,10 @@
           <section>
             <h3>Personal Info</h3>
             <hr />
-            <p>{{ formData.first_name }} {{ formData.middle_name }} {{ formData.surname }}</p>
+            <div v-if="!formData || !formData.first_name">No data loaded</div>
+<div v-else>
+  <p>{{ formData.first_name }} {{ formData.middle_name }} {{ formData.surname }}</p>
+</div>
             <p>{{ formData.full_name }}</p>
             <p>{{ formData.sex }}</p>
             <p>{{ formData.birthdate }}</p>
@@ -78,7 +80,6 @@
             Submit
           </button>
 
-
           <vue-easy-lightbox
           :visible="previewVisible"
           :imgs="previewImages"
@@ -97,7 +98,10 @@
     components: { VueEasyLightbox },
     name: "OverviewModal",
     props: {
-      formData: Object,
+      formData: {
+        type: Object,
+        default: () => ({}),
+      },
     },
     data() {
       return {
@@ -128,27 +132,26 @@
     watch: {
       formData: {
         immediate: true,
+        deep: true,
         handler() {
           this.updatePreviewImages();
+          console.log("📸 Updating preview images with:", this.formData);
         }
       }
     },
     methods: {
       openLightbox(index) {
         this.previewIndex = index;
-        this.previewVisible = true; // ← this is what triggers the lightbox
+        this.previewVisible = true;
       },
       closeLightbox() {
         this.showLightbox = false;
       },
       getFileUrl(filename) {
         const baseUrl = 'http://localhost:4000';
-
         if (typeof filename === 'string') {
-          // This is for loaded/renewed data from DB
           return `${baseUrl}/uploads/${filename.replace(/^Documents\//, '')}`;
         } else if (filename instanceof File) {
-          // This is for newly selected images before upload
           return URL.createObjectURL(filename);
         }
         return '';
@@ -172,8 +175,13 @@
         document.body.classList.remove('modal-open');
       },
     },
+    mounted() {
+      console.log("🧪 formData prop received:", this.formData);
+      console.log("🧪 first name is:", this.formData?.first_name);
+    },
   };
   </script>
+  
   
   
   <style scoped>

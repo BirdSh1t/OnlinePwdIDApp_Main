@@ -337,7 +337,7 @@
             </div>
 
           <!-- Submit Button -->
-          <button type="submit" class="submit-btn">Submit Application</button>
+          <button type="submit" class="submit-btn">Proceed to overview</button>
 
           <div v-if="showOverviewModal" class="modal-mask">
             <transition name="slide-up">

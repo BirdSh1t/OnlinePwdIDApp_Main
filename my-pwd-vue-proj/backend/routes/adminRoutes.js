@@ -663,11 +663,33 @@ router.get("/search", async (req, res) => {
         FROM pending_applications
         WHERE LOWER(full_name) LIKE LOWER(?)
           OR LOWER(email) LIKE LOWER(?)
-          OR LOWER(application_status) = LOWER(?)
-          OR DATE_FORMAT(submitted_at, '%b %d, %Y') LIKE LOWER(?)
-      `;    
-      params = [`%${query}%`, `%${query}%`, query, `%${query}%`];
-
+          OR LOWER(application_status) LIKE LOWER(?)
+          OR LOWER(application_type) LIKE LOWER(?)
+          OR DATE_FORMAT(submitted_at, '%M %d, %Y') LIKE ?
+          OR DATE_FORMAT(submitted_at, '%b %d, %Y') LIKE ?
+          OR DATE_FORMAT(submitted_at, '%M %d') LIKE ?       /* May 7 */
+          OR DATE_FORMAT(submitted_at, '%M') LIKE ?          /* May */
+          OR DATE_FORMAT(submitted_at, '%m/%d/%y') LIKE ?    /* 05/07/24 */
+          OR DATE_FORMAT(submitted_at, '%m/%d/%Y') LIKE ?    /* 05/07/2024 */
+          OR DATE_FORMAT(submitted_at, '%m/%d') LIKE ?       /* 05/07 */
+      `;
+      
+      // Prepare the search pattern (add wildcards for partial matching)
+      const searchPattern = `%${query}%`;
+      params = [
+        searchPattern,  // full_name
+        searchPattern,  // email
+        searchPattern,  // application_status
+        searchPattern,  // application_type
+        searchPattern,  // %M %d, %Y
+        searchPattern,  // %b %d, %Y
+        searchPattern,  // %M %d
+        searchPattern,  // %M
+        searchPattern,  // %m/%d/%y
+        searchPattern,  // %m/%d/%Y
+        searchPattern   // %m/%d
+      ];
+    
       const [results] = await pool.promise().query(sql, params);
       return res.json(results.length ? results : [{ noMatch: true }]);
 

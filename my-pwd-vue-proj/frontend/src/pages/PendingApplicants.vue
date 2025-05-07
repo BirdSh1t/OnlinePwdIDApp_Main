@@ -3,8 +3,8 @@
     <DashboardHeader title="Pending Applicants" @search="handleSearch" />
 
     <!-- Card Container -->
-    <div class="pending-applicants-card">
-      <div class="top-container">
+  <div class="pending-applicants-card">
+    <div class="top-container">
         <!-- Moved tabs to top-left of the table -->
         <div class="tabs-container small-tabs">
           <div
@@ -53,7 +53,7 @@
               <th>Full Name</th>
               <th>Email</th>
               <th>Status</th>
-              <th>Date</th>
+              <th>Date Submitted</th>
               <th>Action</th>
             </tr>
           </thead>
@@ -64,38 +64,79 @@
                 </td>
               </tr>
 
-              <tr v-for="(app, index) in finalApplications" :key="index">
-                <td>{{ app.fullName }}</td>
-                <td>{{ app.email }}</td>
-                <td :class="['status-cell', app.application_status === 'approved' ? 'status-approved' : app.application_status === 'rejected' ? 'status-rejected' : '']">
-                  {{ app.application_status }}
-                </td>
-                <td>{{ app.date }}</td>
+        <tr v-for="app in finalApplications" :key="app.id">
+          <td>{{ app.fullName }}</td>
+           <td>{{ app.email }}</td>
+            <td
+                  :class="[
+                    'status-cell',
+                    app.application_status === 'approved'
+                      ? 'status-approved'
+                      : app.application_status === 'rejected'
+                      ? 'status-rejected'
+                      : ''
+                  ]"
+                >
+                {{ app.application_status }}
+            </td>
+              <td>{{ app.date }}</td>
                 <td class="action-buttons">
+                  <!-- Approve Button -->
                   <button
                     class="btn approve"
                     :class="{ expanded: app.isApproved }"
-                    @click="handleApproveClick(app.id, index)"
+                    @click="handleApproveClick(app.id)"
                     @mouseenter="hoveredButton = { id: app.id, type: 'approve' }"
                     @mouseleave="hoveredButton = null"
+                    v-show="!app.isRejected || app.isApproved"
                   >
-                    {{ app.isApproved ? (hoveredButton?.id === app.id && hoveredButton?.type === 'approve' ? 'View' : 'Approved') : 'Approve' }}
+                    {{
+                      app.isApproved
+                        ? hoveredButton?.id === app.id && hoveredButton?.type === 'approve'
+                          ? 'View'
+                          : 'Approved'
+                        : 'Approve'
+                    }}
                   </button>
 
+                  <!-- Reject Button -->
                   <button
-                    v-if="!app.isApproved || app.isRejected"
                     class="btn reject"
                     :class="{ expanded: app.isRejected }"
-                    @click="handleRejectClick(app.id, index)"
+                    @click="handleRejectClick(app.id)"
                     @mouseenter="hoveredButton = { id: app.id, type: 'reject' }"
                     @mouseleave="hoveredButton = null"
+                    v-show="!app.isApproved || app.isRejected"
                   >
-                    {{ app.isRejected ? (hoveredButton?.id === app.id && hoveredButton?.type === 'reject' ? 'View' : 'Rejected') : 'Reject' }}
+                    {{
+                      app.isRejected
+                        ? hoveredButton?.id === app.id && hoveredButton?.type === 'reject'
+                          ? 'View'
+                          : 'Rejected'
+                        : 'Reject'
+                    }}
                   </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+
+              </td>
+            </tr>
+          </tbody>
+        </table>
+         
+          <div v-if="showRemoteModal" class="modal-mask">
+            <transition name="slide-up">
+              <OverviewRemoteModal
+                :applicantId="selectedApplicantId"
+                :modalActionType="modalActionType"
+                :application-status="selectedApplicant?.application_status"
+                :rejection-reason="selectedApplicant?.rejection_reason"
+                :is-renewal="finalApplications.find(a => a.id === selectedApplicantId)?.is_renewal === 1"
+                :initialStatus="finalApplications.find(a => a.id === selectedApplicantId)?.application_status"
+                @close="showRemoteModal = false"
+                @updateApplication="updateApplication"                
+              />
+            </transition>
+          </div>
+
         </div>
       </div>
     </div>
@@ -106,10 +147,16 @@
   import axios from 'axios';
   import Multiselect from "vue-multiselect";
   import DashboardHeader from '@/components/DashboardHeader.vue';
+  // import OverviewModal from '@/components/modals/OverviewModal.vue';
+  import OverviewRemoteModal from '@/components/modals/OverviewRemoteModal.vue';
   import { useToast } from 'vue-toastification';
+ 
 
   export default {
-    components: { DashboardHeader, Multiselect },
+    components: { DashboardHeader, Multiselect, OverviewRemoteModal },
+    props: {
+    isRenewal: Boolean, 
+    },
     name: 'PendingApplicants',
     data() {
       return {
@@ -126,11 +173,14 @@
           { label: 'Approved', value: 'approved' },
           { label: 'Rejected', value: 'rejected' },
         ],
-        applications: [],
         socket: null,
         applications: [],
         filteredData: [],
-        searchQuery: ''
+        searchQuery: '',
+        // showOverviewModal: false,
+        // currentFormData: null
+        showRemoteModal: false,
+        selectedApplicantId: null,
       };
     },
     computed: {
@@ -150,7 +200,10 @@
           left: this.tabPositions.left,
           width: this.tabPositions.width
         };
-      }
+      },
+      // allChecked() {
+      //   return Object.values(this.sectionChecks).every(val => val === true);
+      // }
     },
     methods: {
       async handleSearch(query) {
@@ -174,7 +227,8 @@
               date: this.formatDate(app.submitted_at),
               is_renewal: app.is_renewal,
               application_status: app.application_status,
-              isApproved: app.application_status === 'approved'
+              isApproved: app.application_status === 'approved',
+              isRejected: app.application_status === 'rejected'
             }));
             this.filteredData = searchedApps;
           }
@@ -212,7 +266,8 @@
             date: this.formatDate(app.submitted_at),
             is_renewal: app.is_renewal,
             application_status: app.application_status,
-            isApproved: app.application_status === 'approved'
+            isApproved: app.application_status === 'approved',
+            isRejected: app.application_status === 'rejected' 
           }));
           
           this.applications = apps;
@@ -223,72 +278,58 @@
         }
       },
       async handleApproveClick(id) {
-        // 1. Locate the applicant in the full applications array
-        const originalIndex = this.applications.findIndex(app => app.id === id);
-        if (originalIndex === -1) {
-          console.warn(`Applicant with id ${id} not found in applications.`);
-          return;
-        }
-        const app = this.applications[originalIndex];
+        const app = this.finalApplications.find(a => a.id === id);
+        if (!app) return;
 
-        // 2. If already approved, open the view modal
-        if (app.isApproved) {
-          this.openViewModal(id);
-          return;
-        }
+        // Just open the modal if not already approved
+        this.selectedApplicantId = id;
+        this.modalActionType = 'approve'; // <- mark as approve intent
+        this.showRemoteModal = true;
 
-        // 3. Otherwise, call the approve endpoint
-        try {
-          const response = await axios.post(`http://localhost:4000/api/pending/${id}/approve`);
-          console.log('✅ Applicant approved:', response.data);
+        // View mode when already approved and hovered
+        const isViewMode = app.isApproved
+          && this.hoveredButton?.id === id
+          && this.hoveredButton?.type === 'approve';
 
-          // 4. Mutate the full applications array entry
-          app.application_status = 'approved';
-          app.isApproved = true;
-
-          // 5. Also update the filteredData array
-          const filteredIndex = this.filteredData.findIndex(a => a.id === id);
-          if (filteredIndex !== -1) {
-            this.filteredData[filteredIndex].application_status = 'approved';
-            this.filteredData[filteredIndex].isApproved = true;
-          }
-
-          // 6. Notify the user
-          this.toast.info('Applicant approved successfully!');
-        } catch (error) {
-          console.error('❌ Failed to approve applicant:', error.response?.data || error.message);
-          this.toast.error('Failed to approve applicant.');
+        if (isViewMode) {
+          this.selectedApplicantId = id;
+          this.modalActionType = 'approve';
+          this.showRemoteModal = true;
         }
       },
-      async handleRejectClick(id, index) {
-        const app = this.applications[index];
+      async handleRejectClick(id) {
+        const app = this.finalApplications.find(a => a.id === id);
+        if (!app) return;
 
-        if (app.isRejected) {
-          this.openViewModal(id); // to be implemented next
-          return;
+        this.selectedApplicantId = id;
+        this.modalActionType = 'reject'; // <- mark as reject intent
+        this.showRemoteModal = true;
+
+        const isViewMode = app.isRejected
+          && this.hoveredButton?.id === id
+          && this.hoveredButton?.type === 'reject';
+
+        if (isViewMode) {
+          this.selectedApplicantId = id;
+          this.modalActionType = 'reject';
+          this.showRemoteModal = true;
         }
-
-        try {
-          await axios.put(`http://localhost:4000/api/applicants/pending/${id}/reject`);
-
-          app.application_status = 'rejected';
-          app.isRejected = true;
-
-          const filtered = this.filteredData.find(app => app.id === id);
-          if (filtered) {
-            filtered.application_status = 'rejected';
-            filtered.isRejected = true;
-          }
-
-          this.toast.info('Applicant rejected successfully!');
-        } catch (error) {
-          console.error('❌ Failed to reject applicant:', error.response?.data || error.message);
-          this.toast.error('Failed to reject applicant.');
-        }
+        console.log(app.id, app.application_status, app.isRejected);
       },
-      openViewModal(id) {
-        console.log('🔍 View modal opened for applicant:', id);
-        // you'll implement this in your next step
+      updateApplication({ id, status }) {
+        const app = this.finalApplications.find(a => a.id === id);
+        if (app) {
+          app.application_status = status;
+          app.isApproved = status === 'approved';
+          app.isRejected = status === 'rejected';
+        }
+
+        const filtered = this.filteredData.find(a => a.id === id);
+        if (filtered) {
+          filtered.application_status = status;
+          filtered.isApproved = status === 'approved';
+          filtered.isRejected = status === 'rejected';
+        }
       },
       formatDate(dateString) {
         if (!dateString) return '';
@@ -332,7 +373,22 @@
 </script>
    
   
-  <style scoped>
+<style scoped>
+
+  .modal-mask {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+  }
+  .modal-open {
+    overflow: hidden;
+  }
+
   .applicants-container {
     font-family: 'montserrat', sans-serif;
     font-weight: 400;
@@ -466,9 +522,13 @@
 
 .action-buttons {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.3rem;
+  width: 100%; 
 }
 
+.action-buttons > .btn {
+  flex: 1;
+}
 
 .btn.reject {
   background-color: rgba(255, 49, 49, 0.4); /* Active */
@@ -477,6 +537,9 @@
 }
 
 .btn.reject.expanded {
+  flex: 1 1 100%; /* Expand and take up the reject button space */
+  max-width: 100%;
+  margin-right: 0; 
   background-color: rgba(255, 49, 49, 0.2); /* Dimmed */
   color: rgba(255, 49, 49, 0.6);
 }
@@ -532,14 +595,14 @@
   align-items: center;
   margin-bottom: 1.25rem;
   padding-right: 2rem; /* Adjusted for better alignment */
-  z-index: 1000; /* Ensure it stays above other content */
+  z-index: 100; /* Ensure it stays above other content */
 }
 
   /* Tabs container */
 .tabs-wrapper {
-  top: 0; /* Or however far from top you want */
-  z-index: 100; /* Make sure it stays above other content */
-  background-color: #dbdbdb; /* Prevent transparency gap when scrolling */
+  top: 0;
+  z-index: 10; 
+  background-color: #dbdbdb; 
   display: flex;
   justify-content: left;
  
