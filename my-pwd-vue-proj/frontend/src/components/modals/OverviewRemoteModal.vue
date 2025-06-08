@@ -280,7 +280,6 @@
             res = await axios.post(`http://localhost:4000/api/pending/${this.applicantId}/approve`, {
               is_renewal: this.isRenewal // <-- send to backend
             });
-
             this.$emit('updateApplication', { id: this.applicantId, status: 'approved' });
             this.toast.info('Applicant approved successfully!');
           } else if (this.modalActionType === 'reject') {
