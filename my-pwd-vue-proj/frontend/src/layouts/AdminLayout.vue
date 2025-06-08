@@ -26,7 +26,7 @@
 </template>
 
 <script>
-import axios from 'axios';
+
 import NavBar from '@/components/NavBar.vue';
 import AppDetailsForm_pg1 from '@/pages/AppDetailsForm_pg1.vue';
 import AppDetailsForm_pg2 from '@/pages/AppDetailsForm_pg2.vue';

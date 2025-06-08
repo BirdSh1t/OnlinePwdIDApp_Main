@@ -1,3 +1,33 @@
+<!-- // async function handleLogin() {
+  // loginClicked.value = true;
+  // if (!canLogin.value) return;
+
+  // isLoading.value = true;
+
+  // try {
+  //   const res = await axios.post(
+  //     `${import.meta.env.VITE_API_URL}/api/auth/admin/login`,
+  //     {
+  //       admin_id: adminId.value,
+  //       pass: password.value
+  //     },
+  //     {
+  //       withCredentials: true, // Required for cookies
+  //       headers: {
+  //         'Content-Type': 'application/json'
+  //       }
+  //     }
+  //   ); -->
+
+  <!-- // Uncomment if needed for real-time admin checking
+  // try {
+  //   const checkRes = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/admin/check-admin`, {
+  //     admin_id: val
+  //   })
+  //   validAdmin.value = checkRes.data.exists
+  // } catch (err) {
+  //   validAdmin.value = false
+  // } -->
 <template>
     <div class="login-container">
       <!-- Header with Fade Transition -->
@@ -109,9 +139,9 @@
   
   <script setup>
   import { ref, computed, watch } from 'vue'
-  import axios from 'axios'
   import { useRouter } from 'vue-router'
   import { useToast } from 'vue-toastification'
+  import { apiClient } from "@/api/apiClient.js"// Adjust the path as necessary
   
   const router = useRouter()
   const toast = useToast()
@@ -123,13 +153,13 @@
   const isLockedOut = ref(false)
   const lockoutTime = ref(0)
   const isLoading = ref(false)
-  const showPassword = ref(false);
+  const showPassword = ref(false)
   
   const validAdmin = ref(false)
   const validPassword = ref(false)
   const validConfirmPassword = ref(false)
-  const loginClicked = ref(false) // New flag
-
+  const loginClicked = ref(false)
+  
   // Validate password format
   watch(password, (val) => {
     const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(val)
@@ -145,101 +175,146 @@
   }
   
   watch(adminId, async (val) => {
-  if (!val) {
-    validAdmin.value = false
-    return
-  }
-
-  try {
-    const checkRes = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/check-admin`, {
-      admin_id: val
-    })
-    validAdmin.value = checkRes.data.exists
-  } catch (err) {
-    validAdmin.value = false
-  }
-})
-
-
-  // Compute login button state
-const canLogin = computed(() => {
-  return (
-    adminId.value &&
-    password.value &&
-    confirmPassword.value &&
-    !isLockedOut.value
-  )
-})
-
+    if (!val) {
+      validAdmin.value = false
+      return
+    }
+  })
   
-  // Handle login
+  const canLogin = computed(() => {
+    return (
+      adminId.value &&
+      password.value &&
+      confirmPassword.value &&
+      !isLockedOut.value
+    )
+  })
+  
   async function handleLogin() {
-loginClicked.value = true
-
-  if (!adminId.value || !password.value || !confirmPassword.value) return;
-
-  isLoading.value = true;
-
-  try {
-    // Step 1: Check if Admin ID exists
-    const checkRes = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/check-admin`, {
-      admin_id: adminId.value
-    })
-
-    validAdmin.value = checkRes.data.exists
-
-    if (!validAdmin.value) {
-      toast.error('Admin ID not found.')
+    loginClicked.value = true
+  
+    if (!adminId.value) {
+      toast.error('Please enter your Admin ID')
       return
     }
-
-    // Step 2: Check password format & match
-    const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password.value)
-    validPassword.value = password.value.length >= 8 && hasSpecial
-    validConfirmPassword.value = password.value === confirmPassword.value
-
-    if (!validPassword.value || !validConfirmPassword.value) {
-      toast.error('Invalid password format or mismatch.')
+  
+    if (!password.value) {
+      toast.error('Please enter your password')
       return
     }
-
-    // Step 3: Attempt login
-    const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/LandingPage`, {
-      admin_id: adminId.value,
-      pass: password.value
-    })
-
-    if (res.data.success) {
-      toast.success('Login successful!')
-      router.push('/admin/dashboard')
-    } else {
-      throw new Error('Invalid credentials')
+  
+    if (!confirmPassword.value) {
+      toast.error('Please confirm your password')
+      return
     }
-  } catch {
-    loginAttempts.value++
-    toast.error('Login failed.')
-
-    if (loginAttempts.value === 5) startCooldown(60)
-    if (loginAttempts.value === 10) startCooldown(3600)
-  } finally {
-    isLoading.value = false
-  }
-}
-
   
-  // Cooldown logic
-  function startCooldown(seconds) {
-    isLockedOut.value = true
-    lockoutTime.value = seconds
+    if (isLockedOut.value) {
+      toast.error(`Please wait ${lockoutTime.value} seconds before trying again`)
+      return
+    }
   
-    const interval = setInterval(() => {
-      lockoutTime.value--
-      if (lockoutTime.value <= 0) {
-        clearInterval(interval)
-        loginAttempts.value = 0
-        isLockedOut.value = false
+    isLoading.value = true
+  
+    try {
+      const checkRes = await apiClient.post(
+        '/api/auth/admin/check-admin',
+        { admin_id: adminId.value }
+      )
+  
+      validAdmin.value = checkRes.data.exists
+  
+      if (!validAdmin.value) {
+        toast.error('Admin ID not found. Please check your credentials')
+        return
       }
-    }, 1000)
+  
+      const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password.value)
+      if (password.value.length < 8) {
+        toast.error('Password must be at least 8 characters long')
+        return
+      }
+      if (!hasSpecial) {
+        toast.error('Password must contain at least one special character')
+        return
+      }
+  
+      if (password.value !== confirmPassword.value) {
+        toast.error('Passwords do not match. Please re-enter your password')
+        return
+      }
+  
+      const res = await apiClient.post(
+        '/api/auth/admin/login',
+        {
+          admin_id: adminId.value,
+          pass: password.value
+        }
+        // withCredentials is automatically handled by apiClient
+      )
+  
+      if (res.data.success) {  
+        loginAttempts.value = 0
+        toast.success('Login successful! Redirecting...')
+        router.push('/admin/dashboard')
+        return // <-- stops further execution
+      } else {
+        throw new Error(res.data.message || 'Login failed')
+      }
+  
+    } catch (err) {
+      if (err.response) {
+        const { status, data } = err.response
+        switch (status) {
+          case 401:
+            let msg = data.message || 'Invalid credentials'
+            if (data.attempts !== undefined) {
+              msg += ` (Attempt ${data.attempts} of 10)`
+            }
+            if (data.lockedUntil) {
+              const lockDate = new Date(data.lockedUntil)
+              msg += ` | Locked until: ${lockDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+  
+              function startCooldown(seconds) {
+                isLockedOut.value = true
+                lockoutTime.value = seconds
+  
+                const timer = setInterval(() => {
+                  lockoutTime.value--
+                  toast.info(`Too many attempts. Please wait ${lockoutTime.value} seconds`, {
+                    timeout: 1000
+                  })
+  
+                  if (lockoutTime.value <= 0) {
+                    clearInterval(timer)
+                    isLockedOut.value = false
+                    toast.dismiss()
+                  }
+                }, 1000)
+              }
+  
+              const remainingSeconds = Math.ceil((new Date(data.lockedUntil) - new Date()) / 1000)
+              if (remainingSeconds > 0) startCooldown(remainingSeconds)
+            }
+            toast.error(msg)
+            break
+  
+          case 429:
+            toast.error(data.message || 'Too many attempts. Please wait before trying again')
+            break
+  
+          case 500:
+            toast.error('Server error. Please try again later')
+            break
+  
+          default:
+            toast.error(data?.message || 'Login failed')
+        }
+      } else {
+        toast.error(err.message || 'Network error. Please check your connection')
+      }
+    } finally {
+      isLoading.value = false
+    }
   }
   
   function getIconUrl(fileName) {
@@ -248,6 +323,24 @@ loginClicked.value = true
   </script>
   
   
+  
+  <!-- // // Start cooldown if needed
+  // if (loginAttempts.value === 5) {
+  //   toast.warning('Multiple failed attempts. 1 minute cooldown activated')
+  //   startCooldown(60)
+  // } else if (loginAttempts.value === 10) {
+  //   toast.warning('Too many failed attempts. 1 hour cooldown activated')
+  //   startCooldown(3600)
+  // } else if (loginAttempts.value > 10) {
+  //   toast.warning('Too many failed attempts. Please contact support')
+  //   isLockedOut.value = true
+  // } else {
+  //   toast.info(`Attempt ${loginAttempts.value} of 10`)
+
+  // } -->
+
+
+
   <style scoped>
 .login-container {
   display: flex;
@@ -414,7 +507,7 @@ label {
 }
 
 .go-back-label{
-    margin-right: 15px;
+  margin-right: 2rem;
 }
 
 .go-back-icon {

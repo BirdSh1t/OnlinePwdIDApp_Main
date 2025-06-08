@@ -300,7 +300,7 @@
 </template>
 
 <script setup>
-import axios from "axios";
+import { apiClient } from '@/api/apiClient'
 import { ref, watch, computed } from 'vue';
 import { defineProps, defineEmits } from 'vue';
 import Multiselect from "vue-multiselect";
@@ -389,8 +389,8 @@ function saveChanges() {
     
   };
 
-  axios
-    .put(`http://localhost:4000/api/users/page1/${formData.value.pwd_id}`, payload)
+  apiClient
+    .put(`/api/users/page1/${formData.value.pwd_id}`, payload)
     .then(response => {
       console.log("Updated user data:", response.data);
       isEditMode.value = false;

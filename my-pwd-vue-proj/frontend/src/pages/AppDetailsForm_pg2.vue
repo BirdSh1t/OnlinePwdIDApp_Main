@@ -280,7 +280,7 @@
 </template>
 
 <script setup>
-import axios from 'axios';
+import { apiClient } from '@/api/apiClient.js'; // Adjust the path as necessary
 import { ref, watch, computed } from 'vue';
 import Multiselect from "vue-multiselect";
 import "vue-multiselect/dist/vue-multiselect.css";
@@ -363,15 +363,15 @@ function saveChanges() {
     member_since: formatDateToMySQL(formData.value.member_since),
   };
 
-  axios
-    .put(`http://localhost:4000/api/users/page2/${formData.value.pwd_id}`, payload)
+  apiClient
+    .put(`/api/users/page2/${formData.value.pwd_id}`, payload)
     .then(response => {
       console.log("Updated user data:", response.data);
       isEditMode.value = false;
       emit("close");
     })
     .catch(error => {
-      console.error("Error updating user:", error.message);
+      console.error("Error updating user:", error.response?.data || error.message);
     });
 }
 

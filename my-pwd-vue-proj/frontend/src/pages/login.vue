@@ -19,7 +19,7 @@
         <!-- Username Input -->
         <div class="input-wrapper">
           <input 
-            v-model="username" 
+            v-model="admin_id" 
             type="text" 
             class="login-input" 
             placeholder="Username" 
@@ -62,17 +62,18 @@
 </template>
 
 <script>
-import axios from 'axios';
+import { apiClient } from "@/api/apiClient.js";
+import { toDisplayString } from 'vue';
 
 export default {
   data() {
     return {
-      username: '',
+      admin_id: '',                  // ✅ changed from username
       password: '',
       showPassword: false,
-      usernameError: '', 
+      adminIdError: '',              // ✅ changed from usernameError
       passwordError: '',
-      usernameValidationError: '',
+      adminIdValidationError: '',    // ✅ changed from usernameValidationError
       passwordValidationError: ''
     };
   },
@@ -132,30 +133,32 @@ export default {
       
       if (!isValid) return;
 
-      // Server-side validation
+      // Server-side validation 
       try {
-        const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/login`, {  
-          username: this.username,  
-          pass: this.password  
-        });
+        const response = await apiClient.post(
+          `${import.meta.env.VITE_API_URL}/api/admin/login`,
+          { admin_id: this.username, pass: this.password },
+          { withCredentials: true } // 👈 Important for sending/receiving cookies
+        );
 
-        if (response.data.success) {
-          alert(response.data.message);
-          localStorage.setItem('isLoggedIn', 'true');
-          this.$router.push('/admin/dashboard');
-        } else {
-          if (response.data.message.includes('username')) {
-            this.usernameError = "Incorrect Username!";
-          } else if (response.data.message.includes('password')) {
-            this.passwordError = "Incorrect Password!";
-          } else {
-            this.usernameError = "Mismatch credentials";
-          }
-        }
+        // Assume success if response is 200 OK (backend handles token in cookie)
+        this.toast.inform("Login successful!");
+        this.$router.push('/admin/dashboard');
+        console.log("Login response:", response.data);
       } catch (error) {
         console.error("Login Error:", error);
-        this.usernameError = "Incorrect Username!";
-        this.passwordError = "Incorrect Password!";
+
+        // Handle backend error response
+        const message = error.response?.data?.message || "Login failed";
+
+        if (message.includes("username")) {
+          this.usernameError = "Incorrect Username!";
+        } else if (message.includes("password")) {
+          this.passwordError = "Incorrect Password!";
+        } else {
+          this.usernameError = "Mismatch credentials";
+          this.passwordError = "Mismatch credentials";
+        }
       }
     }
   },

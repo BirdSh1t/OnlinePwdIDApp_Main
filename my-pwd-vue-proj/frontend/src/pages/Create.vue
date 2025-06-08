@@ -301,7 +301,8 @@
 
 
 <script>
-import axios from "axios";
+import { apiClient } from "@/api/apiClient.js";
+import axios from 'axios';
 import DashboardHeader from '@/components/DashboardHeader.vue';
 import Multiselect from "vue-multiselect";
 import "vue-multiselect/dist/vue-multiselect.css"; // Import default styles
@@ -411,7 +412,7 @@ export default {
           }
 
           try {
-            await axios.delete(`http://localhost:4000/api/users/${this.pwd_id}`);
+            await axios.delete(`/http://localhost:4000:api/users/${this.pwd_id}`);
             toast.success("Record deleted.");
             this.clearForm();
             this.pwd_id = '';
@@ -436,8 +437,14 @@ export default {
       }
 
       try {
-        const response = await fetch(`http://localhost:4000/api/search?page=form&pwd_id=${query}`);
-        const result = await response.json();
+        const response = await axios.get('/http://localhost:4000/search', {
+          params: {
+            page: 'form',
+            pwd_id: query
+          }
+        });
+
+        const data = response.data
 
         if (!response.ok && result.message) {
           throw new Error(result.message);
@@ -536,7 +543,7 @@ export default {
           return;
         }
       axios
-      .post("http://localhost:4000/api/users", payload)
+      .post("/http://localhost:4000/api/users", payload)
       .then(async (response) => {
         console.log(`User ${response.data.pwd_id} added as record #${response.data.user_number}`);
         
@@ -625,11 +632,11 @@ export default {
       toast.success("New Form created successfully!");
       try {
         // ✅ Fetch next record number (num_users)
-        const idResponse = await axios.get('http://localhost:4000/api/next-id');
+        const idResponse = await axios.get('/http://localhost:4000/api/next-id');
         this.currentIndex = idResponse.data.nextId - 1; // For record navigator
 
         // ✅ Fetch new pwd_id
-        const pwdResponse = await axios.get('http://localhost:4000/api/generate-pwd-id');
+        const pwdResponse = await axios.get('/http://localhost:4000/api/generate-pwd-id');
         this.pwd_id = pwdResponse.data.pwd_id;
 
         this.isNewRecord = true; // mark it as new
@@ -643,10 +650,11 @@ export default {
     },
     async fetchAllRecords() {
     try {
-      const response = await axios.get("http://localhost:4000/api/users");
+      const response = await axios.get('/http://localhost:4000/api/users');
+
 
       // 🔥 Filter out archived users (is_archived = 1)
-      const activeOnly = response.data.filter(user => user.is_archived === 0);
+      const users = response.data.data.filter(user => user.is_archived === false);
 
       // ✅ Sort by num_users before assigning
       this.allRecords = activeOnly.sort((a, b) => a.num_users - b.num_users);
@@ -661,8 +669,10 @@ export default {
   },
   async loadRecordByIndex(index) {
     try {
-        const res = await fetch(`http://localhost:4000/api/form-record?index=${index}`);
-        const data = await res.json();
+      const res = await axios.get('/http://localhost:4000/api/form-record', {
+        params: { index }
+        });
+        const data = res.data;
 
         if (data.record) {
           this.fillFormFromRecord(data.record);

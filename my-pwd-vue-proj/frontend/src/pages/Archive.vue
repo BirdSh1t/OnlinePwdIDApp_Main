@@ -48,7 +48,7 @@
 </template>
 
 <script>
-import axios from "axios";
+import { apiClient } from "@/api/apiClient.js";
 import DashboardHeader from "@/components/DashboardHeader.vue";
 import Multiselect from "vue-multiselect";
 
@@ -82,7 +82,7 @@ export default {
   methods: {
     async fetchArchivedUsers() {
       try {
-        const res = await axios.get("http://localhost:4000/api/users/archive");
+        const res = await apiClient.get("/api/users/archive");
         console.log("Raw archive response:", res.data);
 
         if (Array.isArray(res.data)) {
@@ -115,7 +115,7 @@ export default {
       }
 
     try {
-      const { data } = await axios.get("http://localhost:4000/api/search", {
+      const { data } = await apiClient.get("/api/search", {
         params: { page: "archive", query }
       });
 
@@ -146,7 +146,7 @@ export default {
   },
     async unarchiveUser(pwd_id) {
       try {
-        await axios.put(`http://localhost:4000/api/users/${pwd_id}/unarchive`);
+        await apiClient.put(`/api/users/${pwd_id}/unarchive`);
         // remove locally so UI updates instantly
         this.archivedUsers = this.archivedUsers.filter(u => u.pwd_id !== pwd_id);
       } catch (err) {

@@ -144,6 +144,7 @@
   
   
   <script>
+  import { apiClient } from "@/api/apiClient.js";
   import axios from 'axios';
   import Multiselect from "vue-multiselect";
   import DashboardHeader from '@/components/DashboardHeader.vue';
@@ -213,7 +214,7 @@
         }
 
         try {
-          const res = await axios.get("http://localhost:4000/api/search", {
+          const res = await axios.get("/http://localhost:4000/api/search", {
             params: { page: "pending", query }
           });
 
@@ -258,7 +259,7 @@
       },
       async fetchApplications() {
         try {
-          const res = await axios.get('http://localhost:4000/api/applicants/pending');
+          const res = await axios.get('/http://localhost:4000/api/applicants/pending');
           const apps = res.data.map(app => ({
             id: app.id,
             fullName: app.full_name,

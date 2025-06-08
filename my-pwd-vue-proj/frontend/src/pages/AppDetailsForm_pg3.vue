@@ -109,7 +109,7 @@
   </template>
   
 <script setup>
-import axios from 'axios';
+import { apiClient } from '@/api/apiClient.js';
 import { ref, watch, computed } from 'vue';
 import VueEasyLightbox from 'vue-easy-lightbox';
 import AppDetailsFormHeader from '@/components/AppDetailsFormHeader.vue';
@@ -180,7 +180,7 @@ const userImages = ref({
 function fetchUserImages() {
   const id = props.userData.pwd_id;
   if (!id) return;
-  axios.get(`http://localhost:4000/api/users/images/${id}`)
+  apiClient.get(`/api/users/images/${id}`)
     .then(res => {
       userImages.value = res.data || {};
     })

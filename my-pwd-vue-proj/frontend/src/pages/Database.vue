@@ -101,7 +101,7 @@
 </template>
 
 <script>
-import axios from "axios";
+import { apiClient } from "@/api/apiClient.js";
 import DashboardHeader from "@/components/DashboardHeader.vue";
 import Multiselect from "vue-multiselect";
 import MoreOptions from "@/components/MoreOptions.vue";
@@ -178,8 +178,8 @@ computed: {
     },
     // already existing methods
     fetchDatabaseData() {
-    axios
-      .get("http://localhost:4000/api/users", { params: { archived: 0 } }) // ✅ only active
+    apiClient
+      .get("/api/users", { params: { archived: 0 } }) // ✅ only active
       .then((res) => {
         this.tableData = res.data;
       })
@@ -195,8 +195,8 @@ computed: {
         return;
       }
 
-      axios
-        .get("http://localhost:4000/api/search", {
+      apiClient
+        .get("/api/search", {
           params: {
             page: "database",
             query
@@ -240,11 +240,11 @@ computed: {
       try {
         const user = this.tableData[rowIndex];
         const [basicResponse, detailsResponse] = await Promise.all([
-          axios.get(
-            `http://localhost:4000/api/users/page1/${user.pwd_id}`
+          apiClient.get(
+            `/api/users/page1/${user.pwd_id}`
           ),
-          axios.get(
-            `http://localhost:4000/api/users/page2/${user.pwd_id}`
+          apiClient.get(
+            `/api/users/page2/${user.pwd_id}`
           )
         ]);
         const userData = {
@@ -258,7 +258,7 @@ computed: {
     },
     async archiveUser(pwd_id) {
       try {
-        await axios.put(`http://localhost:4000/api/users/${pwd_id}/archive`);
+        await apiClient.put(`/api/users/${pwd_id}/archive`);
         // Let WebSocket broadcast the new list
       } catch (error) {
         console.error("Error archiving user:", error);

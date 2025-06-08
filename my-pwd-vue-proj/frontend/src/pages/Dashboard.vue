@@ -3,6 +3,8 @@
     <!-- Dashboard Header Card -->
     <DashboardHeader title="Dashboard" @search="handleSearch" />
 
+    <p v-if="dashboardData">Welcome, {{ dashboardData.admin_name || dashboardData.employee_name }}</p>
+
     <!-- Statistics Cards -->
     <div class="stats-container">
       <div class="stats-card">
@@ -47,7 +49,7 @@
 </template>
 
 <script>
-import axios from "axios";
+import { apiClient } from "@/api/apiClient.js";
 import DashboardHeader from '@/components/DashboardHeader.vue';
 import PWDTable from '@/components/PWDTable.vue';
 import RecentApplicantsTable from '@/components/RecentApplicantsTable.vue';
@@ -94,7 +96,7 @@ export default {
   },
   async fetchRecentApplicants() {
     try {
-      const res = await axios.get("http://localhost:4000/api/applicants/pending/recent");
+      const res = await apiClient.get("/api/applicants/pending/recent");
       this.recentApplicants = res.data;
     } catch (err) {
       console.error("Failed to fetch recent applicants:", err);
@@ -103,7 +105,7 @@ export default {
 
   async fetchPendingApplicationsCount() {
     try {
-      const res = await axios.get('http://localhost:4000/api/applicants/pending/count');
+      const res = await apiClient.get('/api/applicants/pending/count');
       this.processingApplications = res.data.count;
     } catch (err) {
       console.error('Failed to fetch pending applications count:', err);
@@ -111,7 +113,7 @@ export default {
   },
   async fetchActiveUsers() {
     try {
-      const res = await axios.get("http://localhost:4000/api/users?archived=0");
+      const res = await apiClient.get("/api/users?archived=0");
       this.users = res.data;
       this.filteredData = res.data;
       this.updateStats();
@@ -167,7 +169,7 @@ export default {
     }
 
     try {
-      const res = await axios.get("http://localhost:4000/api/search", {
+      const res = await apiClient.get("/api/search", {
         params: { page: "dashboard", query }
       });
       this.filteredData = res.data.length ? res.data : [];
